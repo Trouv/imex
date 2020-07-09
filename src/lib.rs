@@ -15,16 +15,33 @@ struct Pattern {
     repeat: Repeat,
 }
 
-impl Iterator for Pattern {
-    type Item = usize;
+fn apply_pattern<T: io::BufRead>(
+    pattern: Pattern,
+    streams: &mut Vec<io::Lines<T>>,
+) -> io::Result<Vec<String>> {
+    let mut res: Vec<String> = vec![];
 
-    fn next(&mut self) -> Option<usize> {
-        Some(1)
+    match pattern.data {
+        PatternData::Single(i) => {
+            if let Some(s) = streams.get_mut(i) {
+                if let Some(l) = s.next() {
+                    res.push(l?);
+                }
+            } else {
+                return Err(io::Error::new(
+                    io::ErrorKind::Other,
+                    format!("Pattern item out of file range: {}", i),
+                ));
+            }
+        }
+        PatternData::Group(g) => {
+            for inner_pattern in g {
+                res.extend(apply_pattern(inner_pattern, streams)?);
+            }
+        }
     }
-}
 
-fn apply_pattern<T: Iterator>(pattern: Pattern, streams: Vec<T>) -> io::Result<Vec<String>> {
-    Ok(vec![])
+    Ok(res)
 }
 
 fn parse_pattern(pattern: &str) -> io::Result<Pattern> {
@@ -33,3 +50,6 @@ fn parse_pattern(pattern: &str) -> io::Result<Pattern> {
         repeat: Repeat::Infinitely,
     })
 }
+
+#[cfg(test)]
+mod tests {}
