@@ -12,6 +12,13 @@ struct Pattern {
 }
 
 impl Pattern {
+    fn from(pattern: &str) -> io::Result<Pattern> {
+        Ok(Pattern {
+            data: PatternData::Single(1),
+            repeater: Repeater::Infinite,
+        })
+    }
+
     fn merge_streams<T: io::BufRead>(
         &self,
         streams: &mut Vec<io::Lines<T>>,
@@ -51,12 +58,5 @@ impl Pattern {
         }
 
         Ok(res)
-    }
-
-    fn from(pattern: &str) -> io::Result<Pattern> {
-        Ok(Pattern {
-            data: PatternData::Single(1),
-            repeater: Repeater::Infinite,
-        })
     }
 }
