@@ -60,3 +60,40 @@ impl Pattern {
         Ok(res)
     }
 }
+
+#[cfg(test)]
+mod parse_tests {
+    use super::*;
+
+    #[test]
+    fn empty_string_gives_empty_group_pattern() {}
+
+    #[test]
+    fn repeats_gives_repeating_patterns() {}
+
+    #[test]
+    fn parens_gives_group_patterns() {}
+
+    #[test]
+    fn bad_chars_fails() {}
+
+    #[test]
+    fn too_many_closed_parens_fails() {}
+
+    #[test]
+    fn too_many_open_parens_fails() {}
+
+    #[test]
+    fn mismatched_parens_fails() {}
+
+    #[test]
+    fn bad_repeat_targets_fails() {}
+
+    #[test]
+    fn bad_repeat_brace_contents_fails() {}
+}
+
+#[cfg(test)]
+mod merge_tests {
+    use super::*;
+}
