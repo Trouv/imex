@@ -1,5 +1,6 @@
 use std::io;
 
+#[derive(PartialEq, Debug)]
 pub enum Repeater {
     Infinite,
     Finite(usize),
