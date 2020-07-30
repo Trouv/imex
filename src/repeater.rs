@@ -16,7 +16,6 @@ impl Repeater {
         while repeat {
             if let Repeater::Finite(x) = self {
                 if rep_count >= *x {
-                    repeat = false;
                     break;
                 }
             }

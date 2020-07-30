@@ -1,5 +1,6 @@
 use crate::repeater::Repeater;
-use std::io::{BufRead, Error, ErrorKind::InvalidInput, Lines, Result};
+use std::borrow::Borrow;
+use std::io::{Error, ErrorKind::InvalidInput, Result};
 
 #[derive(PartialEq, Debug)]
 enum PatternData {
@@ -21,7 +22,11 @@ impl Pattern {
         })
     }
 
-    fn merge_streams<T: BufRead>(&self, streams: &mut Vec<Lines<T>>) -> Result<Vec<String>> {
+    fn merge_streams<I>(&self, streams: &mut Vec<I>) -> Result<Vec<String>>
+    where
+        I: Iterator,
+        I::Item: Borrow<str>,
+    {
         let mut res: Vec<String> = vec![];
 
         match &self.data {
@@ -29,7 +34,7 @@ impl Pattern {
                 self.repeater.repeat(|| -> Result<bool> {
                     if let Some(s) = streams.get_mut(*i) {
                         if let Some(l) = s.next() {
-                            res.push(l?);
+                            res.push(l.borrow().to_string());
                             Ok(true)
                         } else {
                             Ok(false)
@@ -233,4 +238,35 @@ mod parse_tests {
 #[cfg(test)]
 mod merge_tests {
     use super::*;
+
+    #[test]
+    fn repeating_patterns_repeat() -> Result<()> {
+        let p = Pattern::from("0{3}1(01){5}")?;
+        let mut streams = vec![
+            "0\n0\n0\n0\n0\n0\n0\n0\n".lines(),
+            "1\n1\n1\n1\n1\n1".lines(),
+        ];
+
+        assert_eq!(
+            p.merge_streams(&mut streams)?,
+            vec!["0", "0", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1"]
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn completed_pattern_exits_repeating() {}
+
+    #[test]
+    fn out_of_range_pattern_fails() {}
+
+    #[test]
+    fn empty_pattern_gives_empty_merge() {}
+
+    #[test]
+    fn empty_streams_give_empty_merge() {}
+
+    #[test]
+    fn empty_stream_list_only_passes_for_empty_pattern() {}
 }
