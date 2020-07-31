@@ -17,10 +17,76 @@ struct Pattern {
 
 impl Pattern {
     fn from(pattern: &str) -> Result<Pattern> {
-        Ok(Pattern {
-            data: PatternData::Single(1),
-            repeater: Repeater::Infinite,
-        })
+        let mut group = vec![];
+
+        let mut in_curlies = false;
+        let mut curled = String::new();
+
+        let mut parens_depth = 0;
+        let mut inner_pattern = String::new();
+        for c in pattern.chars() {
+            if parens_depth > 0 {
+                if c == '(' {
+                    parens_depth += 1;
+                } else if c == ')' {
+                    parens_depth -= 1;
+                }
+
+                if parens_depth == 0 {
+                    group.push(Pattern::from(&inner_pattern)?);
+                    inner_pattern = String::new();
+                } else {
+                    inner_pattern.push(c);
+                }
+            } else if in_curlies {
+                if c.is_digit(10) {
+                    curled.push(c);
+                } else if c == '}' {
+                    if let Some(p) = group.last_mut() {
+                        p.repeater = Repeater::Finite(curled.parse::<usize>().expect(""));
+                        in_curlies = false;
+                    } else {
+                        return Err(Error::new(InvalidInput, "Bad repeat target"));
+                    }
+                } else {
+                    return Err(Error::new(
+                        InvalidInput,
+                        format!("Only digits can be inside curly braces, received: {}", c),
+                    ));
+                }
+            } else {
+                if c.is_digit(10) {
+                    group.push(Pattern {
+                        data: PatternData::Single(c.to_digit(10).expect("") as usize),
+                        repeater: Repeater::Finite(1),
+                    });
+                } else if c == '(' {
+                    parens_depth += 1;
+                } else if c == '{' {
+                    in_curlies = true;
+                } else if c == '*' {
+                    if let Some(p) = group.last_mut() {
+                        p.repeater = Repeater::Infinite;
+                    } else {
+                        return Err(Error::new(InvalidInput, "Bad repeat target"));
+                    }
+                } else {
+                    return Err(Error::new(
+                        InvalidInput,
+                        format!("Bad char in pattern: {}", c),
+                    ));
+                }
+            }
+        }
+
+        if parens_depth > 0 {
+            Err(Error::new(InvalidInput, "Expected ')'"))
+        } else {
+            Ok(Pattern {
+                data: PatternData::Group(group),
+                repeater: Repeater::Finite(1),
+            })
+        }
     }
 
     fn merge_streams<I>(&self, streams: &mut Vec<I>) -> Result<Vec<String>>
@@ -219,10 +285,6 @@ mod parse_tests {
         Pattern::from("*2").unwrap_err();
 
         Pattern::from("{4}4").unwrap_err();
-
-        Pattern::from("5{5}*").unwrap_err();
-
-        Pattern::from("5*{5}").unwrap_err();
 
         Pattern::from("5{*5}").unwrap_err();
     }
