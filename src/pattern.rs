@@ -1,7 +1,6 @@
 use crate::repeater::Repeater;
 use std::borrow::Borrow;
 use std::io::{Error, ErrorKind::InvalidInput, Result};
-use std::str::Lines;
 
 #[derive(PartialEq, Debug)]
 enum PatternData {
@@ -17,6 +16,7 @@ struct Pattern {
 
 impl Pattern {
     fn from(pattern: &str) -> Result<Pattern> {
+        // TODO: Clean this up
         let mut group = vec![];
 
         let mut in_curlies = false;
@@ -119,10 +119,11 @@ impl Pattern {
                 self.repeater.repeat(|| -> Result<bool> {
                     let mut rep = false;
                     for inner_pattern in g {
-                        let inner_res = inner_pattern.merge_streams(streams)?;
+                        let mut inner_res = inner_pattern.merge_streams(streams)?;
                         if inner_res.len() > 0 {
                             rep = true;
                         }
+                        res.append(&mut inner_res);
                     }
                     Ok(rep)
                 })?;
@@ -349,11 +350,7 @@ mod merge_tests {
     #[test]
     fn out_of_range_pattern_fails() -> Result<()> {
         let p = Pattern::from("0120")?;
-        let mut streams = vec![
-            "0\n0\n0".lines(),
-            "1\n1\n1".lines(),
-            "2\n2\n2\n2\n2".lines(),
-        ];
+        let mut streams = vec!["0\n0\n0".lines(), "1\n1\n1".lines()];
 
         p.merge_streams(&mut streams).unwrap_err();
 
@@ -383,7 +380,7 @@ mod merge_tests {
     #[test]
     fn empty_stream_list_only_passes_for_empty_pattern() -> Result<()> {
         let p = Pattern::from("0120")?;
-        let mut streams: Vec<Lines> = vec![];
+        let mut streams: Vec<std::str::Lines> = vec![];
 
         p.merge_streams(&mut streams).unwrap_err();
 
