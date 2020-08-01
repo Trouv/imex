@@ -16,11 +16,11 @@ struct Pattern {
 
 impl Pattern {
     fn from(pattern: &str) -> Result<Pattern> {
-        // TODO: Clean this up
+        // TODO: Clean this up, implement simple parser combinator?
         let mut group = vec![];
 
-        let mut in_curlies = false;
-        let mut curled = String::new();
+        let mut in_brackets = false;
+        let mut inner_quantifier = String::new();
 
         let mut parens_depth = 0;
         let mut inner_pattern = String::new();
@@ -38,20 +38,23 @@ impl Pattern {
                 } else {
                     inner_pattern.push(c);
                 }
-            } else if in_curlies {
+            } else if in_brackets {
                 if c.is_digit(10) {
-                    curled.push(c);
+                    inner_quantifier.push(c);
                 } else if c == '}' {
                     if let Some(p) = group.last_mut() {
-                        p.repeater = Repeater::Finite(curled.parse::<usize>().expect(""));
-                        in_curlies = false;
+                        p.repeater = Repeater::Finite(inner_quantifier.parse::<usize>().expect(""));
+                        in_brackets = false;
                     } else {
-                        return Err(Error::new(InvalidInput, "Bad repeat target"));
+                        return Err(Error::new(InvalidInput, "Bad target for '{/}' repeater"));
                     }
                 } else {
                     return Err(Error::new(
                         InvalidInput,
-                        format!("Only digits can be inside curly braces, received: {}", c),
+                        format!(
+                            "Only digits can be inside '{{/}}' repeaters, received: {}",
+                            c
+                        ),
                     ));
                 }
             } else {
@@ -63,12 +66,12 @@ impl Pattern {
                 } else if c == '(' {
                     parens_depth += 1;
                 } else if c == '{' {
-                    in_curlies = true;
+                    in_brackets = true;
                 } else if c == '*' {
                     if let Some(p) = group.last_mut() {
                         p.repeater = Repeater::Infinite;
                     } else {
-                        return Err(Error::new(InvalidInput, "Bad repeat target"));
+                        return Err(Error::new(InvalidInput, "Bad target for '*' repeater"));
                     }
                 } else {
                     return Err(Error::new(
@@ -80,7 +83,12 @@ impl Pattern {
         }
 
         if parens_depth > 0 {
-            Err(Error::new(InvalidInput, "Expected ')'"))
+            Err(Error::new(
+                InvalidInput,
+                "Unmatched parentheses, expected ')'",
+            ))
+        } else if in_brackets {
+            Err(Error::new(InvalidInput, "Unmatched brackets, expected '}'"))
         } else {
             Ok(Pattern {
                 data: PatternData::Group(group),
@@ -91,6 +99,7 @@ impl Pattern {
 
     fn merge_streams<I>(&self, streams: &mut Vec<I>) -> Result<Vec<String>>
     // TODO: Reconsider this return type
+    // TODO: lazy evaluation, impl Iterator
     where
         I: Iterator,
         I::Item: Borrow<str>,
@@ -267,6 +276,8 @@ mod parse_tests {
 
         Pattern::from("0{1}2{3{4}5").unwrap_err();
 
+        Pattern::from("0{1}23{4}5{6").unwrap_err();
+
         Pattern::from("((0)1(2)3").unwrap_err();
     }
 
@@ -291,7 +302,7 @@ mod parse_tests {
     }
 
     #[test]
-    fn bad_repeat_brace_contents_fails() {
+    fn bad_repeat_bracket_contents_fails() {
         Pattern::from("5{5*}").unwrap_err();
 
         Pattern::from("6{(6)}").unwrap_err();
