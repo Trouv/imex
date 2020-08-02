@@ -6,6 +6,15 @@ struct Zipper<I> {
     iters: Vec<Box<dyn Iterator<Item = I>>>,
 }
 
+impl<I> Zipper<I> {
+    fn from(zprex: &str, iters: Vec<Box<dyn Iterator<Item = I>>>) -> Result<Self> {
+        Ok(Zipper::<I> {
+            zprex: Zprex::from(zprex)?,
+            iters,
+        })
+    }
+}
+
 impl<I> Iterator for Zipper<I> {
     type Item = Result<I>;
 

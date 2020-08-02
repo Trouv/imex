@@ -15,7 +15,7 @@ pub struct Zprex {
 }
 
 impl Zprex {
-    pub fn from(zprex: &str) -> Result<Zprex> {
+    pub fn from(zprex: &str) -> Result<Self> {
         // TODO: Clean this up, implement simple parser combinator?
         let mut group = vec![];
 
