@@ -9,13 +9,13 @@ enum PatternData {
 }
 
 #[derive(PartialEq, Debug)]
-struct Pattern {
+pub struct Pattern {
     data: PatternData,
     repeater: Repeater,
 }
 
 impl Pattern {
-    fn from(pattern: &str) -> Result<Pattern> {
+    pub fn from(pattern: &str) -> Result<Pattern> {
         // TODO: Clean this up, implement simple parser combinator?
         let mut group = vec![];
 
@@ -97,7 +97,7 @@ impl Pattern {
         }
     }
 
-    fn merge_streams<I>(&self, streams: &mut Vec<I>) -> Result<Vec<String>>
+    pub fn merge_streams<I>(&self, streams: &mut Vec<I>) -> Result<Vec<String>>
     // TODO: Reconsider this return type
     // TODO: lazy evaluation, impl Iterator
     where
@@ -144,7 +144,7 @@ impl Pattern {
 }
 
 #[cfg(test)]
-mod parse_tests {
+mod tests {
     use super::*;
 
     #[test]
@@ -309,98 +309,4 @@ mod parse_tests {
 
         Pattern::from("7{7{7}}").unwrap_err();
     }
-}
-
-#[cfg(test)]
-mod merge_tests {
-    use super::*;
-
-    #[test]
-    fn non_repeating_pattern_might_not_complete() -> Result<()> {
-        let p = Pattern::from("01(10){3}")?;
-        let mut streams = vec!["0\n0\n0\n0\n0".lines(), "1\n1\n1\n1\n1".lines()];
-
-        assert_eq!(
-            p.merge_streams(&mut streams)?,
-            vec!["0", "1", "1", "0", "1", "0", "1", "0"]
-        );
-
-        Ok(())
-    }
-
-    #[test]
-    fn repeating_patterns_repeat() -> Result<()> {
-        let p = Pattern::from("0{3}1(01){5}")?;
-        let mut streams = vec!["0\n0\n0\n0\n0\n0\n0\n0".lines(), "1\n1\n1\n1\n1\n1".lines()];
-
-        assert_eq!(
-            p.merge_streams(&mut streams)?,
-            vec!["0", "0", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1"]
-        );
-
-        Ok(())
-    }
-
-    #[test]
-    fn completed_pattern_exits_repeating() -> Result<()> {
-        let p = Pattern::from("0*(12)*")?;
-        let mut streams = vec![
-            "0\n0\n0".lines(),
-            "1\n1\n1".lines(),
-            "2\n2\n2\n2\n2".lines(),
-        ];
-
-        assert_eq!(
-            p.merge_streams(&mut streams)?,
-            vec!["0", "0", "0", "1", "2", "1", "2", "1", "2", "2", "2"]
-        );
-
-        Ok(())
-    }
-
-    #[test]
-    fn out_of_range_pattern_fails() -> Result<()> {
-        let p = Pattern::from("0120")?;
-        let mut streams = vec!["0\n0\n0".lines(), "1\n1\n1".lines()];
-
-        p.merge_streams(&mut streams).unwrap_err();
-
-        Ok(())
-    }
-
-    #[test]
-    fn empty_pattern_gives_empty_merge() -> Result<()> {
-        let p = Pattern::from("")?;
-        let mut streams = vec!["0\n0\n0".lines(), "1\n1\n1".lines()];
-
-        assert_eq!(p.merge_streams(&mut streams)?, Vec::<String>::new());
-
-        Ok(())
-    }
-
-    #[test]
-    fn empty_streams_give_empty_merge() -> Result<()> {
-        let p = Pattern::from("0120")?;
-        let mut streams = vec!["".lines(), "".lines(), "".lines()];
-
-        assert_eq!(p.merge_streams(&mut streams)?, Vec::<String>::new());
-
-        Ok(())
-    }
-
-    #[test]
-    fn empty_stream_list_only_passes_for_empty_pattern() -> Result<()> {
-        let p = Pattern::from("0120")?;
-        let mut streams: Vec<std::str::Lines> = vec![];
-
-        p.merge_streams(&mut streams).unwrap_err();
-
-        let p = Pattern::from("")?;
-
-        assert_eq!(p.merge_streams(&mut streams)?, Vec::<String>::new());
-
-        Ok(())
-    }
-
-    // TODO: Tests for str::Lines vs io::Lines?
 }
