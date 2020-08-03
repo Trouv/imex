@@ -6,6 +6,25 @@ pub enum Repeater {
     Finite(usize),
 }
 
+trait Repeator {
+    type Item;
+
+    fn once(&mut self) -> Option<Self::Item>;
+
+    fn get_repeater(&mut self) -> Repeater;
+}
+
+impl<I> Iterator for dyn Repeator<Item = I> {
+    type Item = I;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Repeater::Finite(i) = self.get_repeater() {
+            if i > 0 {}
+        }
+        None
+    }
+}
+
 impl Repeater {
     pub fn repeat<F>(&self, mut op: F) -> io::Result<()>
     where

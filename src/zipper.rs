@@ -1,9 +1,10 @@
-use crate::zprex::{QuantifiedZprVal, Zprex};
+use crate::zprex::{QuantifiedZprVal, ZprVal, Zprex};
 use std::io::Result;
 
 struct Zipper<I> {
     zprex: Box<dyn Iterator<Item = QuantifiedZprVal>>,
     iters: Vec<Box<dyn Iterator<Item = I>>>,
+    inner_zipper: Option<Box<Zipper<I>>>,
 }
 
 impl<I> Zipper<I> {
@@ -11,6 +12,7 @@ impl<I> Zipper<I> {
         Ok(Zipper::<I> {
             zprex: Box::from(Zprex::from(zprex)?.0.into_iter()),
             iters,
+            inner_zipper: None,
         })
     }
 }
@@ -19,6 +21,21 @@ impl<I> Iterator for Zipper<I> {
     type Item = Result<I>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        if let Some(z) = self.inner_zipper {
+            let inner_res = (*z).next();
+
+            if inner_res.is_some() {
+                return inner_res;
+            }
+        }
+
+        if let Some(q) = (*self.zprex).next() {
+            match q.val {
+                ZprVal::Single(i) => {}
+                ZprVal::Group(z) => {}
+            }
+        }
+
         None
     }
 }

@@ -2,14 +2,14 @@ use crate::repeater::Repeater;
 use std::io::{Error, ErrorKind::InvalidInput, Result};
 
 #[derive(PartialEq, Debug)]
-enum ZprVal {
+pub enum ZprVal {
     Single(usize),
     Group(Zprex),
 }
 
 #[derive(PartialEq, Debug)]
 pub struct QuantifiedZprVal {
-    val: ZprVal,
+    pub val: ZprVal,
     repeater: Repeater,
 }
 
