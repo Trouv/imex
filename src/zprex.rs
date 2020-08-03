@@ -8,15 +8,13 @@ enum ZprVal {
 }
 
 #[derive(PartialEq, Debug)]
-struct QuantifiedZprVal {
+pub struct QuantifiedZprVal {
     val: ZprVal,
     repeater: Repeater,
 }
 
 #[derive(PartialEq, Debug)]
-pub struct Zprex {
-    sequence: Vec<QuantifiedZprVal>,
-}
+pub struct Zprex(pub Vec<QuantifiedZprVal>);
 
 impl Zprex {
     pub fn from(zprex: &str) -> Result<Self> {
@@ -97,7 +95,7 @@ impl Zprex {
         } else if in_brackets {
             Err(Error::new(InvalidInput, "Unmatched brackets, expected '}'"))
         } else {
-            Ok(Zprex { sequence: sequence })
+            Ok(Zprex(sequence))
         }
     }
 
@@ -155,7 +153,7 @@ mod tests {
     fn empty_string_gives_empty_group_zprex() -> Result<()> {
         let p = Zprex::from("")?;
 
-        assert_eq!(p.sequence, vec![]);
+        assert_eq!(p, Zprex(vec![]));
         Ok(())
     }
 
@@ -165,26 +163,24 @@ mod tests {
 
         assert_eq!(
             p,
-            Zprex {
-                sequence: vec![
-                    QuantifiedZprVal {
-                        val: ZprVal::Single(1),
-                        repeater: Repeater::Finite(1),
-                    },
-                    QuantifiedZprVal {
-                        val: ZprVal::Single(3),
-                        repeater: Repeater::Finite(3),
-                    },
-                    QuantifiedZprVal {
-                        val: ZprVal::Single(9),
-                        repeater: Repeater::Infinite,
-                    },
-                    QuantifiedZprVal {
-                        val: ZprVal::Single(1),
-                        repeater: Repeater::Finite(1),
-                    },
-                ],
-            }
+            Zprex(vec![
+                QuantifiedZprVal {
+                    val: ZprVal::Single(1),
+                    repeater: Repeater::Finite(1),
+                },
+                QuantifiedZprVal {
+                    val: ZprVal::Single(3),
+                    repeater: Repeater::Finite(3),
+                },
+                QuantifiedZprVal {
+                    val: ZprVal::Single(9),
+                    repeater: Repeater::Infinite,
+                },
+                QuantifiedZprVal {
+                    val: ZprVal::Single(1),
+                    repeater: Repeater::Finite(1),
+                },
+            ],)
         );
         Ok(())
     }
@@ -195,65 +191,53 @@ mod tests {
 
         assert_eq!(
             p,
-            Zprex {
-                sequence: vec![
-                    QuantifiedZprVal {
+            Zprex(vec![
+                QuantifiedZprVal {
+                    val: ZprVal::Single(1),
+                    repeater: Repeater::Finite(1),
+                },
+                QuantifiedZprVal {
+                    val: ZprVal::Group(Zprex(vec![QuantifiedZprVal {
                         val: ZprVal::Single(1),
                         repeater: Repeater::Finite(1),
-                    },
-                    QuantifiedZprVal {
-                        val: ZprVal::Group(Zprex {
-                            sequence: vec![QuantifiedZprVal {
+                    }])),
+                    repeater: Repeater::Finite(1),
+                },
+                QuantifiedZprVal {
+                    val: ZprVal::Group(Zprex(vec![QuantifiedZprVal {
+                        val: ZprVal::Single(9),
+                        repeater: Repeater::Finite(1),
+                    }])),
+                    repeater: Repeater::Infinite,
+                },
+                QuantifiedZprVal {
+                    val: ZprVal::Group(Zprex(vec![QuantifiedZprVal {
+                        val: ZprVal::Single(4),
+                        repeater: Repeater::Finite(1),
+                    }])),
+                    repeater: Repeater::Finite(4),
+                },
+                QuantifiedZprVal {
+                    val: ZprVal::Group(Zprex(vec![
+                        QuantifiedZprVal {
+                            val: ZprVal::Single(1),
+                            repeater: Repeater::Finite(1),
+                        },
+                        QuantifiedZprVal {
+                            val: ZprVal::Group(Zprex(vec![QuantifiedZprVal {
                                 val: ZprVal::Single(1),
                                 repeater: Repeater::Finite(1),
-                            }]
-                        }),
-                        repeater: Repeater::Finite(1),
-                    },
-                    QuantifiedZprVal {
-                        val: ZprVal::Group(Zprex {
-                            sequence: vec![QuantifiedZprVal {
-                                val: ZprVal::Single(9),
-                                repeater: Repeater::Finite(1),
-                            }]
-                        }),
-                        repeater: Repeater::Infinite,
-                    },
-                    QuantifiedZprVal {
-                        val: ZprVal::Group(Zprex {
-                            sequence: vec![QuantifiedZprVal {
-                                val: ZprVal::Single(4),
-                                repeater: Repeater::Finite(1),
-                            }]
-                        }),
-                        repeater: Repeater::Finite(4),
-                    },
-                    QuantifiedZprVal {
-                        val: ZprVal::Group(Zprex {
-                            sequence: vec![
-                                QuantifiedZprVal {
-                                    val: ZprVal::Single(1),
-                                    repeater: Repeater::Finite(1),
-                                },
-                                QuantifiedZprVal {
-                                    val: ZprVal::Group(Zprex {
-                                        sequence: vec![QuantifiedZprVal {
-                                            val: ZprVal::Single(1),
-                                            repeater: Repeater::Finite(1),
-                                        }]
-                                    }),
-                                    repeater: Repeater::Finite(1),
-                                }
-                            ]
-                        }),
-                        repeater: Repeater::Finite(1),
-                    },
-                    QuantifiedZprVal {
-                        val: ZprVal::Group(Zprex { sequence: vec![] }),
-                        repeater: Repeater::Finite(1),
-                    }
-                ]
-            }
+                            }])),
+                            repeater: Repeater::Finite(1),
+                        }
+                    ])),
+                    repeater: Repeater::Finite(1),
+                },
+                QuantifiedZprVal {
+                    val: ZprVal::Group(Zprex(vec![])),
+                    repeater: Repeater::Finite(1),
+                }
+            ])
         );
         Ok(())
     }

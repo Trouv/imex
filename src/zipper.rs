@@ -1,15 +1,15 @@
-use crate::zprex::Zprex;
+use crate::zprex::{QuantifiedZprVal, Zprex};
 use std::io::Result;
 
 struct Zipper<I> {
-    zprex: Zprex,
+    zprex: Box<dyn Iterator<Item = QuantifiedZprVal>>,
     iters: Vec<Box<dyn Iterator<Item = I>>>,
 }
 
 impl<I> Zipper<I> {
     fn from(zprex: &str, iters: Vec<Box<dyn Iterator<Item = I>>>) -> Result<Self> {
         Ok(Zipper::<I> {
-            zprex: Zprex::from(zprex)?,
+            zprex: Box::from(Zprex::from(zprex)?.0.into_iter()),
             iters,
         })
     }
