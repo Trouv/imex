@@ -1,10 +1,12 @@
+use crate::repeater::Repeater;
 use crate::zprex::{QuantifiedZprVal, ZprVal, Zprex};
-use std::io::Result;
+use std::io::{Error, ErrorKind::InvalidInput, Result};
 
 struct Zipper<I> {
     zprex: Box<dyn Iterator<Item = QuantifiedZprVal>>,
     iters: Vec<Box<dyn Iterator<Item = I>>>,
     inner_zipper: Option<Box<Zipper<I>>>,
+    current_repeater: Option<Box<Repeater<I>>>,
 }
 
 impl<I> Zipper<I> {
@@ -13,6 +15,7 @@ impl<I> Zipper<I> {
             zprex: Box::from(Zprex::from(zprex)?.0.into_iter()),
             iters,
             inner_zipper: None,
+            current_repeater: None,
         })
     }
 }
@@ -21,22 +24,57 @@ impl<I> Iterator for Zipper<I> {
     type Item = Result<I>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(z) = self.inner_zipper {
-            let inner_res = (*z).next();
+        loop {
+            if let Some(z) = self.inner_zipper {
+                let inner_res = (*z).next();
 
-            if inner_res.is_some() {
-                return inner_res;
+                if inner_res.is_some() {
+                    return inner_res;
+                } else {
+                    self.inner_zipper = None;
+                }
+            }
+
+            if let Some(r) = self.current_repeater {
+                let rep_res = (*r).next();
+
+                if rep_res.is_some() {
+                    return rep_res;
+                } else {
+                    self.current_repeater = None;
+                }
+            }
+
+            if let Some(q) = (*self.zprex).next() {
+                match q.val {
+                    ZprVal::Single(i) => {
+                        self.current_repeater = Repeater {
+                            quantifier: q.quantifier,
+                            operation: || -> Option<Self::Item> {
+                                if let Some(s) = self.iters.get_mut(*i) {
+                                    if let Some(e) = s.next() {
+                                        Some(Ok(e))
+                                    } else {
+                                        None
+                                    }
+                                } else {
+                                    Err(Error::new(
+                                        InvalidInput,
+                                        format!("Zprex item out of file range: {}", i),
+                                    ))
+                                }
+                            },
+                        }
+                    }
+                    ZprVal::Group(z) => {
+                        self.current_repeater = Repeater {
+                            quantifier: q.quantifier,
+                            operatiion: || -> Option<Self::Item> { self.inner_zprex = z },
+                        }
+                    }
+                }
             }
         }
-
-        if let Some(q) = (*self.zprex).next() {
-            match q.val {
-                ZprVal::Single(i) => {}
-                ZprVal::Group(z) => {}
-            }
-        }
-
-        None
     }
 }
 
