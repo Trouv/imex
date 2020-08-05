@@ -1,19 +1,19 @@
 use crate::repeater::Quantifier;
 use std::io::{Error, ErrorKind::InvalidInput, Result};
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum ZprVal {
     Single(usize),
     Group(Zprex),
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct QuantifiedZprVal {
     pub val: ZprVal,
-    quantifier: Quantifier,
+    pub quantifier: Quantifier,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct Zprex(pub Vec<QuantifiedZprVal>);
 
 impl Zprex {

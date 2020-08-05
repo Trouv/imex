@@ -1,6 +1,6 @@
 use std::io;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum Quantifier {
     Infinite,
     Finite(usize),
@@ -39,26 +39,6 @@ impl Quantifier {
             rep_count += 1;
         }
         Ok(())
-    }
-}
-
-pub struct Repeater<I> {
-    quantifier: Quantifier,
-    operation: Box<dyn FnMut() -> Option<io::Result<I>>>,
-}
-
-impl<I> Iterator for Repeater<I> {
-    type Item = io::Result<I>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            if self.quantifier.next().is_some() {
-                let op = *self.operation;
-                return *self.*operation();
-            } else {
-                return None;
-            }
-        }
     }
 }
 

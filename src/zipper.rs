@@ -1,21 +1,24 @@
-use crate::repeater::Repeater;
+use crate::repeater::Quantifier;
 use crate::zprex::{QuantifiedZprVal, ZprVal, Zprex};
+use std::cell::RefCell;
 use std::io::{Error, ErrorKind::InvalidInput, Result};
+use std::rc::Rc;
 
 struct Zipper<I> {
     zprex: Box<dyn Iterator<Item = QuantifiedZprVal>>,
-    iters: Vec<Box<dyn Iterator<Item = I>>>,
-    inner_zipper: Option<Box<Zipper<I>>>,
-    current_repeater: Option<Box<Repeater<I>>>,
+    iters: Rc<RefCell<Vec<Box<dyn Iterator<Item = I>>>>>,
+    inner_zipper: (Option<Box<Zipper<I>>>, bool),
+    current_qzprval: Option<QuantifiedZprVal>,
 }
 
 impl<I> Zipper<I> {
     fn from(zprex: &str, iters: Vec<Box<dyn Iterator<Item = I>>>) -> Result<Self> {
+        println!("{}", zprex);
         Ok(Zipper::<I> {
             zprex: Box::from(Zprex::from(zprex)?.0.into_iter()),
-            iters,
-            inner_zipper: None,
-            current_repeater: None,
+            iters: Rc::new(RefCell::from(iters)),
+            inner_zipper: (None, false),
+            current_qzprval: None,
         })
     }
 }
@@ -25,53 +28,65 @@ impl<I> Iterator for Zipper<I> {
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
-            if let Some(z) = self.inner_zipper {
-                let inner_res = (*z).next();
+            println!("{:?}", self.current_qzprval);
+            if let Some(z) = &mut self.inner_zipper.0 {
+                let inner_res = z.next();
 
                 if inner_res.is_some() {
+                    self.inner_zipper.1 = true;
                     return inner_res;
                 } else {
-                    self.inner_zipper = None;
+                    self.inner_zipper.0 = None;
                 }
             }
 
-            if let Some(r) = self.current_repeater {
-                let rep_res = (*r).next();
-
-                if rep_res.is_some() {
-                    return rep_res;
-                } else {
-                    self.current_repeater = None;
-                }
-            }
-
-            if let Some(q) = (*self.zprex).next() {
-                match q.val {
-                    ZprVal::Single(i) => {
-                        self.current_repeater = Repeater {
-                            quantifier: q.quantifier,
-                            operation: || -> Option<Self::Item> {
-                                if let Some(s) = self.iters.get_mut(*i) {
-                                    if let Some(e) = s.next() {
-                                        Some(Ok(e))
-                                    } else {
-                                        None
-                                    }
+            if let Some(q) = &mut self.current_qzprval {
+                if q.quantifier.next().is_some() {
+                    match &q.val {
+                        ZprVal::Single(i) => {
+                            if let Some(s) = (*self.iters).borrow_mut().get_mut(*i) {
+                                if let Some(e) = s.next() {
+                                    return Some(Ok(e));
                                 } else {
-                                    Err(Error::new(
-                                        InvalidInput,
-                                        format!("Zprex item out of file range: {}", i),
-                                    ))
+                                    self.current_qzprval = None;
                                 }
-                            },
+                            } else {
+                                return Some(Err(Error::new(
+                                    InvalidInput,
+                                    format!("Zprex item out of file range: {}", i),
+                                )));
+                            }
+                        }
+                        ZprVal::Group(z) => {
+                            if self.inner_zipper.1 {
+                                self.inner_zipper = (
+                                    Some(Box::from(Zipper {
+                                        zprex: Box::from(z.0.clone().into_iter()),
+                                        iters: self.iters.clone(),
+                                        inner_zipper: (None, false),
+                                        current_qzprval: None,
+                                    })),
+                                    false,
+                                );
+                            } else {
+                                self.current_qzprval = None;
+                            }
                         }
                     }
-                    ZprVal::Group(z) => {
-                        self.current_repeater = Repeater {
-                            quantifier: q.quantifier,
-                            operatiion: || -> Option<Self::Item> { self.inner_zprex = z },
-                        }
+                } else {
+                    self.current_qzprval = None;
+                }
+            }
+
+            if self.inner_zipper.0.is_none() && self.current_qzprval.is_none() {
+                if let Some(q) = (*self.zprex).next() {
+                    self.current_qzprval = Some(q.clone());
+
+                    if let ZprVal::Group(_) = q.val {
+                        self.inner_zipper.1 = true;
                     }
+                } else {
+                    return None;
                 }
             }
         }
@@ -88,7 +103,7 @@ mod tests {
             vec![Box::from("00000".chars()), Box::from("11111".chars())];
         let z = Zipper::from("01(10){3}", iters)?;
 
-        assert_eq!(z.map(|c| c.unwrap()).collect::<String>(), "01010");
+        assert_eq!(z.map(|c| c.unwrap()).collect::<String>(), "01101010");
 
         Ok(())
     }
