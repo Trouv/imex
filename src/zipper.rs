@@ -1,22 +1,21 @@
-use crate::repeater::Quantifier;
 use crate::zprex::{QuantifiedZprVal, ZprVal, Zprex};
 use std::cell::RefCell;
 use std::io::{Error, ErrorKind::InvalidInput, Result};
 use std::rc::Rc;
 
-struct Zipper<I> {
-    zprex: Box<dyn Iterator<Item = QuantifiedZprVal>>,
+pub struct Zipper<I> {
     iters: Rc<RefCell<Vec<Box<dyn Iterator<Item = I>>>>>,
+    zprex: Box<dyn Iterator<Item = QuantifiedZprVal>>,
     inner_zipper: (Option<Box<Zipper<I>>>, bool),
     current_qzprval: Option<QuantifiedZprVal>,
 }
 
 impl<I> Zipper<I> {
-    fn from(zprex: &str, iters: Vec<Box<dyn Iterator<Item = I>>>) -> Result<Self> {
+    pub fn from(iters: Vec<Box<dyn Iterator<Item = I>>>, zprex: &str) -> Result<Self> {
         println!("{}", zprex);
         Ok(Zipper::<I> {
-            zprex: Box::from(Zprex::from(zprex)?.0.into_iter()),
             iters: Rc::new(RefCell::from(iters)),
+            zprex: Box::from(Zprex::from(zprex)?.0.into_iter()),
             inner_zipper: (None, false),
             current_qzprval: None,
         })
