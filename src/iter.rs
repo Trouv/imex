@@ -1,36 +1,48 @@
 use crate::zipper::Zipper;
 use std::io::Result;
 
-pub trait ZipsIntoOne {
-    type Item;
-    fn zip_into_one(
-        self: Box<Self>,
-        iters: &mut Vec<Box<dyn Iterator<Item = Self::Item>>>,
-        zprex: &str,
-    ) -> Result<Zipper<Self::Item>>;
-}
+pub trait ZipsIntoOne<T, I>
+where
+    T: Iterator<Item = I>,
+{
+    fn zip_into_one_by_zprex(self, iters: &mut Vec<T>, zprex: &str) -> Result<Zipper<T, I>>;
 
-impl<I> ZipsIntoOne for dyn Iterator<Item = I> {
-    type Item = I;
-    fn zip_into_one(
-        self: Box<Self>,
-        iters: &mut Vec<Box<dyn Iterator<Item = Self::Item>>>,
-        zprex: &str,
-    ) -> Result<Zipper<Self::Item>> {
-        let mut total_iters: Vec<Box<dyn Iterator<Item = Self::Item>>> = vec![self];
-        total_iters.append(iters);
-        Zipper::<Self::Item>::from(total_iters, zprex)
+    fn zip_into_one(self, iters: &mut Vec<T>) -> Zipper<T, I>
+    where
+        Self: std::marker::Sized,
+    {
+        let iter_count = (iters.len() + 1) as u8;
+        let zprex = format!(
+            "({})*",
+            (0..iter_count).map(|x| x as char).collect::<String>()
+        );
+        self.zip_into_one_by_zprex(iters, &zprex).unwrap()
     }
 }
 
-trait AllZipsIntoOne {
-    type Item;
-    fn zip_into_one(self, zprex: &str) -> Result<Zipper<Self::Item>>;
+impl<T, I> ZipsIntoOne<T, I> for T
+where
+    T: Iterator<Item = I>,
+{
+    fn zip_into_one_by_zprex(self, iters: &mut Vec<T>, zprex: &str) -> Result<Zipper<T, I>> {
+        let mut total_iters = vec![self];
+        total_iters.append(iters);
+        Zipper::<T, I>::from(total_iters, zprex)
+    }
 }
 
-impl<I> AllZipsIntoOne for Vec<Box<dyn Iterator<Item = I>>> {
-    type Item = I;
-    fn zip_into_one(self, zprex: &str) -> Result<Zipper<Self::Item>> {
-        Zipper::<Self::Item>::from(self, zprex)
+trait AllZipsIntoOne<T, I>
+where
+    T: Iterator<Item = I>,
+{
+    fn zip_into_one_by_zprex(self, zprex: &str) -> Result<Zipper<T, I>>;
+}
+
+impl<T, I> AllZipsIntoOne<T, I> for Vec<T>
+where
+    T: Iterator<Item = I>,
+{
+    fn zip_into_one_by_zprex(self, zprex: &str) -> Result<Zipper<T, I>> {
+        Zipper::<T, I>::from(self, zprex)
     }
 }
