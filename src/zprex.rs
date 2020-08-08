@@ -99,51 +99,6 @@ impl Zprex {
             Ok(Zprex(sequence))
         }
     }
-
-    //pub fn merge_iters<I>(&self, iters: &mut Vec<I>) -> Result<Vec<String>>
-    //// TODO: Reconsider this return type
-    //// TODO: lazy evaluation, impl Iterator
-    //where
-    //I: Iterator,
-    //I::Item: Borrow<str>,
-    //{
-    //let mut res: Vec<String> = vec![];
-
-    //match &self.val {
-    //ZprVal::Single(i) => {
-    //self.quantifier.repeat(|| -> Result<bool> {
-    //if let Some(s) = iters.get_mut(*i) {
-    //if let Some(l) = s.next() {
-    //res.push(l.borrow().to_string());
-    //Ok(true)
-    //} else {
-    //Ok(false)
-    //}
-    //} else {
-    //Err(Error::new(
-    //InvalidInput,
-    //format!("Zprex item out of file range: {}", i),
-    //))
-    //}
-    //})?;
-    //}
-    //ZprVal::Group(g) => {
-    //self.quantifier.repeat(|| -> Result<bool> {
-    //let mut rep = false;
-    //for inner_zprex in g {
-    //let mut inner_res = inner_zprex.merge_iters(iters)?;
-    //if inner_res.len() > 0 {
-    //rep = true;
-    //}
-    //res.append(&mut inner_res);
-    //}
-    //Ok(rep)
-    //})?;
-    //}
-    //}
-
-    //Ok(res)
-    //}
 }
 
 #[cfg(test)]

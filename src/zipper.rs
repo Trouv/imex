@@ -2,27 +2,37 @@ use crate::zprex::{QuantifiedZprVal, ZprVal, Zprex};
 use std::cell::RefCell;
 use std::io::{Error, ErrorKind::InvalidInput, Result};
 use std::rc::Rc;
+use std::vec::IntoIter;
 
-pub struct Zipper<I> {
-    iters: Rc<RefCell<Vec<Box<dyn Iterator<Item = I>>>>>,
-    zprex: Box<dyn Iterator<Item = QuantifiedZprVal>>,
-    inner_zipper: (Option<Box<Zipper<I>>>, bool),
+pub struct Zipper<T, I>
+where
+    T: Iterator<Item = I>,
+{
+    iters: Rc<RefCell<Vec<T>>>,
+    zprex: IntoIter<QuantifiedZprVal>,
+    inner_zipper: (Option<Box<Zipper<T, I>>>, bool),
     current_qzprval: Option<QuantifiedZprVal>,
 }
 
-impl<I> Zipper<I> {
-    pub fn from(iters: Vec<Box<dyn Iterator<Item = I>>>, zprex: &str) -> Result<Self> {
+impl<T, I> Zipper<T, I>
+where
+    T: Iterator<Item = I>,
+{
+    pub fn from(iters: Vec<T>, zprex: &str) -> Result<Self> {
         println!("{}", zprex);
-        Ok(Zipper::<I> {
-            iters: Rc::new(RefCell::from(iters)),
-            zprex: Box::from(Zprex::from(zprex)?.0.into_iter()),
+        Ok(Zipper::<T, I> {
+            iters: Rc::new(RefCell::new(iters)),
+            zprex: Zprex::from(zprex)?.0.into_iter(),
             inner_zipper: (None, false),
             current_qzprval: None,
         })
     }
 }
 
-impl<I> Iterator for Zipper<I> {
+impl<T, I> Iterator for Zipper<T, I>
+where
+    T: Iterator<Item = I>,
+{
     type Item = Result<I>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -59,9 +69,9 @@ impl<I> Iterator for Zipper<I> {
                         ZprVal::Group(z) => {
                             if self.inner_zipper.1 {
                                 self.inner_zipper = (
-                                    Some(Box::from(Zipper {
-                                        zprex: Box::from(z.0.clone().into_iter()),
+                                    Some(Box::from(Zipper::<T, I> {
                                         iters: self.iters.clone(),
+                                        zprex: z.clone().0.into_iter(),
                                         inner_zipper: (None, false),
                                         current_qzprval: None,
                                     })),
@@ -78,7 +88,7 @@ impl<I> Iterator for Zipper<I> {
             }
 
             if self.inner_zipper.0.is_none() && self.current_qzprval.is_none() {
-                if let Some(q) = (*self.zprex).next() {
+                if let Some(q) = (self.zprex).next() {
                     self.current_qzprval = Some(q.clone());
 
                     if let ZprVal::Group(_) = q.val {
@@ -98,8 +108,7 @@ mod tests {
 
     #[test]
     fn non_repeating_zprex_might_not_complete() -> Result<()> {
-        let iters: Vec<Box<dyn Iterator<Item = char>>> =
-            vec![Box::from("00000".chars()), Box::from("11111".chars())];
+        let iters = vec!["00000".chars(), "11111".chars()];
         let z = Zipper::from(iters, "01(10){3}")?;
 
         assert_eq!(z.map(|c| c.unwrap()).collect::<String>(), "01101010");
@@ -109,8 +118,7 @@ mod tests {
 
     #[test]
     fn repeating_zprex_repeats() -> Result<()> {
-        let iters: Vec<Box<dyn Iterator<Item = char>>> =
-            vec![Box::from("00000000".chars()), Box::from("111111".chars())];
+        let iters = vec!["00000000".chars(), "111111".chars()];
         let z = Zipper::from(iters, "0{3}1(01){5}")?;
 
         assert_eq!(z.map(|c| c.unwrap()).collect::<String>(), "00010101010101");
@@ -120,11 +128,7 @@ mod tests {
 
     #[test]
     fn completed_zprex_exits_repeating() -> Result<()> {
-        let iters: Vec<Box<dyn Iterator<Item = char>>> = vec![
-            Box::from("000".chars()),
-            Box::from("111".chars()),
-            Box::from("22222".chars()),
-        ];
+        let iters = vec!["000".chars(), "111".chars(), "22222".chars()];
         let z = Zipper::from(iters, "0*(12)*")?;
 
         assert_eq!(z.map(|c| c.unwrap()).collect::<String>(), "00012121222");
@@ -134,8 +138,7 @@ mod tests {
 
     #[test]
     fn out_of_range_zprex_fails() -> Result<()> {
-        let iters: Vec<Box<dyn Iterator<Item = char>>> =
-            vec![Box::from("000".chars()), Box::from("111".chars())];
+        let iters = vec!["000".chars(), "111".chars()];
         let mut z = Zipper::from(iters, "0120")?;
 
         if let Some(r) = z.nth(2) {
@@ -149,8 +152,7 @@ mod tests {
 
     #[test]
     fn empty_zprex_gives_empty_merge() -> Result<()> {
-        let iters: Vec<Box<dyn Iterator<Item = char>>> =
-            vec![Box::from("000".chars()), Box::from("111".chars())];
+        let iters = vec!["000".chars(), "111".chars()];
         let z = Zipper::from(iters, "")?;
 
         assert_eq!(z.map(|c| c.unwrap()).collect::<String>(), String::new());
@@ -160,11 +162,7 @@ mod tests {
 
     #[test]
     fn empty_iters_give_empty_merge() -> Result<()> {
-        let iters: Vec<Box<dyn Iterator<Item = char>>> = vec![
-            Box::from("".chars()),
-            Box::from("".chars()),
-            Box::from("".chars()),
-        ];
+        let iters = vec!["".chars(), "".chars(), "".chars()];
         let z = Zipper::from(iters, "0120")?;
 
         assert_eq!(z.map(|c| c.unwrap()).collect::<String>(), String::new());
@@ -174,7 +172,7 @@ mod tests {
 
     #[test]
     fn empty_iter_list_only_passes_for_empty_zprex() -> Result<()> {
-        let iters: Vec<Box<dyn Iterator<Item = char>>> = vec![];
+        let iters: Vec<std::str::Chars> = vec![];
         let mut z = Zipper::from(iters, "0120")?;
 
         if let Some(r) = z.nth(2) {
@@ -183,7 +181,7 @@ mod tests {
             panic!("Expected an error, not None");
         }
 
-        let iters: Vec<Box<dyn Iterator<Item = char>>> = vec![];
+        let iters: Vec<std::str::Chars> = vec![];
         let z = Zipper::from(iters, "")?;
 
         assert_eq!(z.map(|c| c.unwrap()).collect::<String>(), String::new());
