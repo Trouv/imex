@@ -9,7 +9,10 @@ Iterator-Merging-Expression, for controlling the merge. imex will
 also be a command line tool for merging files line-by-line in the
 future.
 """
+repository = "https://github.com/Trouv/imex"
+readme = "README.md"
+keywords = ["iterator", "merge", "regex", "pattern"]
+license = "MIT OR Apache-2.0"
 edition = "2018"
-
 
 [dependencies]
