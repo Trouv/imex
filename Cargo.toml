@@ -1,9 +1,15 @@
 [package]
-name = "zprfly"
+name = "imex"
 version = "0.1.0"
-authors = ["TLovell <trevorlovelldesign@gmail.com>"]
+authors = ["Trevor Lovell <trevorlovelldesign@gmail.com>"]
+description = """
+imex is a library for merging multiple iterators into one
+iterator, with the optional use of an IMEx, or
+Iterator-Merging-Expression, for controlling the merge. imex will
+also be a command line tool for merging files line-by-line in the
+future.
+"""
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
