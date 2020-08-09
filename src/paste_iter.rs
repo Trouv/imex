@@ -1,4 +1,4 @@
-use crate::zprex::{QuantifiedZprVal, ZprVal, Zprex};
+use crate::pastex::{QuantifiedZprVal, ZprVal, Zprex};
 use std::cell::RefCell;
 use std::io::{Error, ErrorKind::InvalidInput, Result};
 use std::rc::Rc;

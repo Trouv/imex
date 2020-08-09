@@ -1,4 +1,4 @@
-use crate::zipper::Zipper;
+use crate::paste_iter::Zipper;
 use std::io::Result;
 
 pub trait ZipsIntoOne<T, I>

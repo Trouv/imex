@@ -1,4 +1,4 @@
-pub mod iter;
-pub mod repeater;
-pub mod zipper;
-pub mod zprex;
+pub mod paste_iter;
+pub mod pastes;
+pub mod pastex;
+pub mod quantifier;

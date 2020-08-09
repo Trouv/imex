@@ -1,4 +1,4 @@
-use crate::repeater::Quantifier;
+use crate::quantifier::Quantifier;
 use std::io::{Error, ErrorKind::InvalidInput, Result};
 
 #[derive(PartialEq, Debug, Clone)]
