@@ -2,31 +2,31 @@ use crate::quantifier::Quantifier;
 use std::io::{Error, ErrorKind::InvalidInput, Result};
 
 #[derive(PartialEq, Debug, Clone)]
-pub enum ZprVal {
+pub enum PastexVal {
     Single(usize),
-    Group(Zprex),
+    Group(Pastex),
 }
 
 #[derive(PartialEq, Debug, Clone)]
-pub struct QuantifiedZprVal {
-    pub val: ZprVal,
+pub struct QuantifiedPastexVal {
+    pub val: PastexVal,
     pub quantifier: Quantifier,
 }
 
 #[derive(PartialEq, Debug, Clone)]
-pub struct Zprex(pub Vec<QuantifiedZprVal>);
+pub struct Pastex(pub Vec<QuantifiedPastexVal>);
 
-impl Zprex {
-    pub fn from(zprex: &str) -> Result<Self> {
+impl Pastex {
+    pub fn from(pastex: &str) -> Result<Self> {
         // TODO: Clean this up, implement simple parser combinator?
-        let mut sequence: Vec<QuantifiedZprVal> = vec![];
+        let mut sequence: Vec<QuantifiedPastexVal> = vec![];
 
         let mut in_brackets = false;
         let mut inner_quantifier = String::new();
 
         let mut parens_depth = 0;
-        let mut inner_zprex = String::new();
-        for c in zprex.chars() {
+        let mut inner_pastex = String::new();
+        for c in pastex.chars() {
             if parens_depth > 0 {
                 if c == '(' {
                     parens_depth += 1;
@@ -35,13 +35,13 @@ impl Zprex {
                 }
 
                 if parens_depth == 0 {
-                    sequence.push(QuantifiedZprVal {
-                        val: ZprVal::Group(Zprex::from(&inner_zprex)?),
+                    sequence.push(QuantifiedPastexVal {
+                        val: PastexVal::Group(Pastex::from(&inner_pastex)?),
                         quantifier: Quantifier::Finite(1),
                     });
-                    inner_zprex = String::new();
+                    inner_pastex = String::new();
                 } else {
-                    inner_zprex.push(c);
+                    inner_pastex.push(c);
                 }
             } else if in_brackets {
                 if c.is_digit(10) {
@@ -65,8 +65,8 @@ impl Zprex {
                 }
             } else {
                 if c.is_digit(10) {
-                    sequence.push(QuantifiedZprVal {
-                        val: ZprVal::Single(c.to_digit(10).expect("") as usize),
+                    sequence.push(QuantifiedPastexVal {
+                        val: PastexVal::Single(c.to_digit(10).expect("") as usize),
                         quantifier: Quantifier::Finite(1),
                     });
                 } else if c == '(' {
@@ -82,7 +82,7 @@ impl Zprex {
                 } else {
                     return Err(Error::new(
                         InvalidInput,
-                        format!("Bad char in zprex: {}", c),
+                        format!("Bad char in pastex: {}", c),
                     ));
                 }
             }
@@ -96,7 +96,7 @@ impl Zprex {
         } else if in_brackets {
             Err(Error::new(InvalidInput, "Unmatched brackets, expected '}'"))
         } else {
-            Ok(Zprex(sequence))
+            Ok(Pastex(sequence))
         }
     }
 }
@@ -106,34 +106,34 @@ mod tests {
     use super::*;
 
     #[test]
-    fn empty_string_gives_empty_group_zprex() -> Result<()> {
-        let p = Zprex::from("")?;
+    fn empty_string_gives_empty_group_pastex() -> Result<()> {
+        let p = Pastex::from("")?;
 
-        assert_eq!(p, Zprex(vec![]));
+        assert_eq!(p, Pastex(vec![]));
         Ok(())
     }
 
     #[test]
-    fn repeats_gives_repeating_zprex() -> Result<()> {
-        let p = Zprex::from("13{3}9*1")?;
+    fn repeats_gives_repeating_pastex() -> Result<()> {
+        let p = Pastex::from("13{3}9*1")?;
 
         assert_eq!(
             p,
-            Zprex(vec![
-                QuantifiedZprVal {
-                    val: ZprVal::Single(1),
+            Pastex(vec![
+                QuantifiedPastexVal {
+                    val: PastexVal::Single(1),
                     quantifier: Quantifier::Finite(1),
                 },
-                QuantifiedZprVal {
-                    val: ZprVal::Single(3),
+                QuantifiedPastexVal {
+                    val: PastexVal::Single(3),
                     quantifier: Quantifier::Finite(3),
                 },
-                QuantifiedZprVal {
-                    val: ZprVal::Single(9),
+                QuantifiedPastexVal {
+                    val: PastexVal::Single(9),
                     quantifier: Quantifier::Infinite,
                 },
-                QuantifiedZprVal {
-                    val: ZprVal::Single(1),
+                QuantifiedPastexVal {
+                    val: PastexVal::Single(1),
                     quantifier: Quantifier::Finite(1),
                 },
             ],)
@@ -142,46 +142,46 @@ mod tests {
     }
 
     #[test]
-    fn parens_gives_group_zprex() -> Result<()> {
-        let p = Zprex::from("1(1)(9)*(4){4}(1(1))()")?;
+    fn parens_gives_group_pastex() -> Result<()> {
+        let p = Pastex::from("1(1)(9)*(4){4}(1(1))()")?;
 
         assert_eq!(
             p,
-            Zprex(vec![
-                QuantifiedZprVal {
-                    val: ZprVal::Single(1),
+            Pastex(vec![
+                QuantifiedPastexVal {
+                    val: PastexVal::Single(1),
                     quantifier: Quantifier::Finite(1),
                 },
-                QuantifiedZprVal {
-                    val: ZprVal::Group(Zprex(vec![QuantifiedZprVal {
-                        val: ZprVal::Single(1),
+                QuantifiedPastexVal {
+                    val: PastexVal::Group(Pastex(vec![QuantifiedPastexVal {
+                        val: PastexVal::Single(1),
                         quantifier: Quantifier::Finite(1),
                     }])),
                     quantifier: Quantifier::Finite(1),
                 },
-                QuantifiedZprVal {
-                    val: ZprVal::Group(Zprex(vec![QuantifiedZprVal {
-                        val: ZprVal::Single(9),
+                QuantifiedPastexVal {
+                    val: PastexVal::Group(Pastex(vec![QuantifiedPastexVal {
+                        val: PastexVal::Single(9),
                         quantifier: Quantifier::Finite(1),
                     }])),
                     quantifier: Quantifier::Infinite,
                 },
-                QuantifiedZprVal {
-                    val: ZprVal::Group(Zprex(vec![QuantifiedZprVal {
-                        val: ZprVal::Single(4),
+                QuantifiedPastexVal {
+                    val: PastexVal::Group(Pastex(vec![QuantifiedPastexVal {
+                        val: PastexVal::Single(4),
                         quantifier: Quantifier::Finite(1),
                     }])),
                     quantifier: Quantifier::Finite(4),
                 },
-                QuantifiedZprVal {
-                    val: ZprVal::Group(Zprex(vec![
-                        QuantifiedZprVal {
-                            val: ZprVal::Single(1),
+                QuantifiedPastexVal {
+                    val: PastexVal::Group(Pastex(vec![
+                        QuantifiedPastexVal {
+                            val: PastexVal::Single(1),
                             quantifier: Quantifier::Finite(1),
                         },
-                        QuantifiedZprVal {
-                            val: ZprVal::Group(Zprex(vec![QuantifiedZprVal {
-                                val: ZprVal::Single(1),
+                        QuantifiedPastexVal {
+                            val: PastexVal::Group(Pastex(vec![QuantifiedPastexVal {
+                                val: PastexVal::Single(1),
                                 quantifier: Quantifier::Finite(1),
                             }])),
                             quantifier: Quantifier::Finite(1),
@@ -189,8 +189,8 @@ mod tests {
                     ])),
                     quantifier: Quantifier::Finite(1),
                 },
-                QuantifiedZprVal {
-                    val: ZprVal::Group(Zprex(vec![])),
+                QuantifiedPastexVal {
+                    val: PastexVal::Group(Pastex(vec![])),
                     quantifier: Quantifier::Finite(1),
                 }
             ])
@@ -200,59 +200,59 @@ mod tests {
 
     #[test]
     fn bad_chars_fails() {
-        Zprex::from("0O0").unwrap_err();
+        Pastex::from("0O0").unwrap_err();
 
-        Zprex::from("^[0]+$").unwrap_err();
+        Pastex::from("^[0]+$").unwrap_err();
 
-        Zprex::from("123*4{5}(x)*").unwrap_err();
+        Pastex::from("123*4{5}(x)*").unwrap_err();
     }
 
     #[test]
     fn too_many_closed_parens_fails() {
-        Zprex::from("0(1)2)3(4)5").unwrap_err();
+        Pastex::from("0(1)2)3(4)5").unwrap_err();
 
-        Zprex::from("0{1}2}3{4}5").unwrap_err();
+        Pastex::from("0{1}2}3{4}5").unwrap_err();
 
-        Zprex::from("0(1)2(3))").unwrap_err();
+        Pastex::from("0(1)2(3))").unwrap_err();
     }
 
     #[test]
     fn too_many_open_parens_fails() {
-        Zprex::from("0(1)2(3(4)5").unwrap_err();
+        Pastex::from("0(1)2(3(4)5").unwrap_err();
 
-        Zprex::from("0{1}2{3{4}5").unwrap_err();
+        Pastex::from("0{1}2{3{4}5").unwrap_err();
 
-        Zprex::from("0{1}23{4}5{6").unwrap_err();
+        Pastex::from("0{1}23{4}5{6").unwrap_err();
 
-        Zprex::from("((0)1(2)3").unwrap_err();
+        Pastex::from("((0)1(2)3").unwrap_err();
     }
 
     #[test]
     fn mismatched_parens_fails() {
-        Zprex::from(")(").unwrap_err();
+        Pastex::from(")(").unwrap_err();
 
-        Zprex::from("(3{)}").unwrap_err();
+        Pastex::from("(3{)}").unwrap_err();
     }
 
     #[test]
     fn bad_repeat_targets_fails() {
-        Zprex::from("(*4)").unwrap_err();
+        Pastex::from("(*4)").unwrap_err();
 
-        Zprex::from("({6}6)").unwrap_err();
+        Pastex::from("({6}6)").unwrap_err();
 
-        Zprex::from("*2").unwrap_err();
+        Pastex::from("*2").unwrap_err();
 
-        Zprex::from("{4}4").unwrap_err();
+        Pastex::from("{4}4").unwrap_err();
 
-        Zprex::from("5{*5}").unwrap_err();
+        Pastex::from("5{*5}").unwrap_err();
     }
 
     #[test]
     fn bad_repeat_bracket_contents_fails() {
-        Zprex::from("5{5*}").unwrap_err();
+        Pastex::from("5{5*}").unwrap_err();
 
-        Zprex::from("6{(6)}").unwrap_err();
+        Pastex::from("6{(6)}").unwrap_err();
 
-        Zprex::from("7{7{7}}").unwrap_err();
+        Pastex::from("7{7{7}}").unwrap_err();
     }
 }
