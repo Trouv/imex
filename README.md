@@ -1,19 +1,18 @@
 # IMEx
-imex is a library for merging multiple iterators into one iterator, with the
-optional use of an IMEx, or Iterator-Merging-Expression, for controlling the
-merge. imex will also be a command line tool for merging files line-by-line in
-the future.
+A library for merging multiple iterators into one iterator, with the optional
+use of an IMEx, or Iterator-Merging-Expression, for controlling the merge. imex
+will also be a command line tool for merging files line-by-line in the future.
 
 ## Writing an IMEx
 IMEx is based off of RegEx. A quick reference of IMEx syntax:
-- Digits - indicates the index of the iterator to consume an item from
-- `()` - defines a group
-- `*` - repeats the previous digit/group until the relevant iterator\(s\) are
-  exhausted
-- `{x}` - repeats the previous digit/group `x` times, or until the relevant
-  iterator\(s\) are exhausted.
+ * Digits - indicates the index of the iterator to consume an item from
+ * `()` - defines a group
+ * `*` - repeats the previous digit/group until the relevant iterator\(s\) are
+   exhausted
+ * `{x}` - repeats the previous digit/group `x` times, or until the relevant
+   iterator\(s\) are exhausted.
 
-Examples:
+### Examples
 
 `"0110"` on two iterators: results in a merged iterator that starts
 with the first item of the first iterator, then the first two items of the
@@ -36,10 +35,12 @@ be read in the crate's [documentation](https://docs.rs/imex/).
 
 ## Planned Functionality
 There are two main features planned for imex:
-- CLI tool possibly titled `fmex` for merging files line-by-line using an IMEx.
-  Will follow the UNIX philosophy, and will be able to merge files with stdin.
-- An optional curses TUI for this tool to edit the IMEx and see results in real
-  time, along with a peek into the upcoming lines of the files being merged.
+ * CLI tool possibly titled `fmex` for merging files line-by-line using an
+   IMEx.  Will follow the UNIX philosophy, and will be able to merge files with
+   stdin.
+ * An optional curses TUI for this tool to edit the IMEx and see results in
+   real time, along with a peek into the upcoming lines of the files being
+   merged.
 
 ## License
 Licensed under either of

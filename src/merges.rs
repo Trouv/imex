@@ -7,7 +7,7 @@ where
 {
     fn imex_merge_all(self, iters: &mut Vec<T>, imex: &str) -> Result<IMExIter<T, I>>;
 
-    fn alt_merge_all(self, iters: &mut Vec<T>) -> IMExIter<T, I>
+    fn rot_merge_all(self, iters: &mut Vec<T>) -> IMExIter<T, I>
     where
         Self: Sized,
     {
@@ -65,10 +65,10 @@ mod tests {
     }
 
     #[test]
-    fn alt_merge_all() {
+    fn rot_merge_all() {
         let r = "1234"
             .chars()
-            .alt_merge_all(&mut vec!["abcdefg".chars(), "!@#".chars()]);
+            .rot_merge_all(&mut vec!["abcdefg".chars(), "!@#".chars()]);
 
         assert_eq!(r.map(|i| i.unwrap()).collect::<String>(), "1a!2b@3c#4defg");
     }
