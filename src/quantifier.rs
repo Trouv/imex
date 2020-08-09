@@ -1,5 +1,3 @@
-use std::io;
-
 #[derive(PartialEq, Debug, Clone)]
 pub enum Quantifier {
     Infinite,
@@ -21,33 +19,12 @@ impl Iterator for Quantifier {
     }
 }
 
-impl Quantifier {
-    pub fn repeat<F>(&self, mut op: F) -> io::Result<()>
-    where
-        F: FnMut() -> io::Result<bool>,
-    {
-        let mut repeat = true;
-        let mut rep_count: usize = 0;
-        while repeat {
-            if let Quantifier::Finite(x) = self {
-                if rep_count >= *x {
-                    break;
-                }
-            }
-
-            repeat = op()?;
-            rep_count += 1;
-        }
-        Ok(())
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn repeater_iter_test() {
+    fn three_quantifier_iterates_thrice() {
         let mut r = Quantifier::Finite(3);
         assert_eq!(r.next(), Some(()));
         assert_eq!(r, Quantifier::Finite(2));
@@ -59,96 +36,16 @@ mod tests {
     }
 
     #[test]
-    fn infinite_repeater_repeats_until_false() {
-        let r = Quantifier::Infinite;
-        let mut c = 0;
-        r.repeat(|| -> io::Result<bool> {
-            if c < 100 {
-                c += 1;
-                Ok(true)
-            } else {
-                Ok(false)
-            }
-        })
-        .unwrap();
-
-        assert_eq!(c, 100);
+    fn zero_quantifier_gives_immediate_none() {
+        let mut r = Quantifier::Finite(0);
+        assert_eq!(r.next(), None);
     }
 
     #[test]
-    fn infinite_repeater_runs_once_for_immediate_false() {
-        let r = Quantifier::Infinite;
-        let mut c = 0;
-        r.repeat(|| -> io::Result<bool> {
-            c += 1;
-            Ok(false)
-        })
-        .unwrap();
-
-        assert_eq!(c, 1);
-    }
-
-    #[test]
-    fn finite_repeater_repeats_until_end_of_range() {
-        let r = Quantifier::Finite(10);
-        let mut c = 0;
-        r.repeat(|| -> io::Result<bool> {
-            if c < 20 {
-                c += 1;
-                Ok(true)
-            } else {
-                Ok(false)
-            }
-        })
-        .unwrap();
-
-        assert_eq!(c, 10);
-    }
-
-    #[test]
-    fn finite_repeater_repeats_until_false() {
-        let r = Quantifier::Finite(10);
-        let mut c = 0;
-        r.repeat(|| -> io::Result<bool> {
-            if c < 5 {
-                c += 1;
-                Ok(true)
-            } else {
-                Ok(false)
-            }
-        })
-        .unwrap();
-
-        assert_eq!(c, 5);
-    }
-
-    #[test]
-    fn finite_repeater_runs_once_for_immediate_false() {
-        let r = Quantifier::Finite(10);
-        let mut c = 0;
-        r.repeat(|| -> io::Result<bool> {
-            c += 1;
-            Ok(false)
-        })
-        .unwrap();
-
-        assert_eq!(c, 1);
-    }
-
-    #[test]
-    fn finite_repeater_doesnt_run_for_zero_range() {
-        let r = Quantifier::Finite(0);
-        let mut c = 0;
-        r.repeat(|| -> io::Result<bool> {
-            if c < 5 {
-                c += 1;
-                Ok(true)
-            } else {
-                Ok(false)
-            }
-        })
-        .unwrap();
-
-        assert_eq!(c, 0);
+    fn infinite_quantifier_iterates_a_lot() {
+        let mut r = Quantifier::Infinite;
+        for _ in 0..100 {
+            assert_eq!(r.next(), Some(()));
+        }
     }
 }
