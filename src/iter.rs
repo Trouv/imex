@@ -23,11 +23,12 @@ where
     /// Constructs and [`IMExIter`](./struct.IMExIter.html) from a vector of iterators and an IMEx
     /// string.
     ///
+    /// # Error
     /// Results in an error if the provided IMEx is invalid.
     ///
     /// # Example
     /// ```
-    /// use ::imex::iter::IMExIter;
+    /// use ::imex::IMExIter;
     ///
     /// let imex_iter = IMExIter::from(vec!["1234".chars(), "abcde".chars()], "(001)*")
     ///     .expect("Invalid IMEx");

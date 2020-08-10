@@ -26,11 +26,12 @@ pub struct IMEx(pub Vec<QuantifiedIMExVal>);
 impl IMEx {
     /// Parse an [`IMEx`](./struct.IMEx.html) from a string.
     ///
+    /// # Error
     /// Results in an error if the IMEx is invalid.
     ///
-    /// Example:
+    /// # Example
     /// ```
-    /// use ::imex::imex::IMEx;
+    /// use ::imex::IMEx;
     /// let imex = IMEx::from("01*(23){4}");
     /// ```
     pub fn from(imex: &str) -> Result<Self> {

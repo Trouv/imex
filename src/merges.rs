@@ -11,6 +11,7 @@ where
     ///
     /// In practice, this is used to merge more than two iterators with a custom IMEx.
     ///
+    /// # Error
     /// Results in an error if the provided IMEx is invalid.
     ///
     /// # Example
@@ -60,6 +61,7 @@ where
 
     /// Merges two iterators (self and other) using a custom IMEx.
     ///
+    /// # Error
     /// Results in an error if the provided IMEx is invalid.
     ///
     /// # Example

@@ -52,4 +52,6 @@ pub mod iter;
 pub mod merges;
 pub mod quantifier;
 
+pub use self::imex::IMEx;
+pub use iter::IMExIter;
 pub use merges::IMExMerges;
