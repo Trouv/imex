@@ -4,6 +4,8 @@ use std::io::{Error, ErrorKind::InvalidInput, Result};
 use std::rc::Rc;
 use std::vec::IntoIter;
 
+/// An iterator that lazily merges other iterators using an IMEx. The result of using the merge
+/// functions defined on the [`IMExMerges`](../merges/trait.IMExMerges.html) trait.
 pub struct IMExIter<T, I>
 where
     T: Iterator<Item = I>,
@@ -18,8 +20,24 @@ impl<T, I> IMExIter<T, I>
 where
     T: Iterator<Item = I>,
 {
+    /// Constructs and [`IMExIter`](./struct.IMExIter.html) from a vector of iterators and an IMEx
+    /// string.
+    ///
+    /// Results in an error if the provided IMEx is invalid.
+    ///
+    /// # Example
+    /// ```
+    /// use ::imex::iter::IMExIter;
+    ///
+    /// let imex_iter = IMExIter::from(vec!["1234".chars(), "abcde".chars()], "(001)*")
+    ///     .expect("Invalid IMEx");
+    /// let merged = imex_iter
+    ///     .map(|e| e.expect("Index out of range"))
+    ///     .collect::<String>();
+    ///
+    /// assert_eq!(merged, "12a34bcde");
+    /// ```
     pub fn from(iters: Vec<T>, imex: &str) -> Result<Self> {
-        println!("{}", imex);
         Ok(IMExIter::<T, I> {
             iters: Rc::new(RefCell::new(iters)),
             imex: IMEx::from(imex)?.0.into_iter(),
@@ -37,7 +55,6 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
-            println!("{:?}", self.current_qimexval);
             if let Some(i) = &mut self.inner_imex_iter.0 {
                 let inner_res = i.next();
 

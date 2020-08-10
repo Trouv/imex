@@ -54,7 +54,6 @@ where
                 .map(|x| format!("{}", x))
                 .collect::<String>()
         );
-        println!("{}", imex);
         self.imex_merge_all(iters, &imex)
             .expect("Default imex should have been valid, but wasn't")
     }
