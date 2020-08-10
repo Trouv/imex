@@ -1,3 +1,5 @@
+/// Represents a quantifier in a parsed [`IMEx`](../imex/struct.IMEx.html). Either Finite (`{x}`), in
+/// which case a range is contained, or Infinite (`*`).
 #[derive(PartialEq, Debug, Clone)]
 pub enum Quantifier {
     Infinite,
