@@ -43,7 +43,7 @@
 //! There are alternatives for [`imex_merge`](merges/trait.IMExMerges.html#method.imex_merge) for
 //! merging more than 2 iterators or using the default alternating/rotating IMEx. These functions
 //! can be found here:
-//!  * [`imex_merge_all`](merges/trait.IMExMerges.html#method.imex_merge_all)
+//!  * [`imex_merge_all`](merges/trait.IMExMerges.html#tymethod.imex_merge_all)
 //!  * [`rot_merge_all`](merges/trait.IMExMerges.html#method.rot_merge_all)
 //!  * [`alt_merge`](merges/trait.IMExMerges.html#method.alt_merge)
 

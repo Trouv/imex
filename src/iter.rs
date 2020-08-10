@@ -4,7 +4,7 @@ use std::io::{Error, ErrorKind::InvalidInput, Result};
 use std::rc::Rc;
 use std::vec::IntoIter;
 
-/// An iterator that lazily merges other iterators using an IMEx. The result of using the merge
+/// An iterator that lazily merges other iterators using an [`IMEx`](../imex/struct.IMEx.html). The result of using the merge
 /// functions defined on the [`IMExMerges`](../merges/trait.IMExMerges.html) trait.
 pub struct IMExIter<T, I>
 where

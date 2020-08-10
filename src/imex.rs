@@ -1,22 +1,38 @@
 use crate::quantifier::Quantifier;
 use std::io::{Error, ErrorKind::InvalidInput, Result};
 
+/// [`IMEx`]: ./struct.IMEx.html
+/// Represents a quantifiable value in a parsed [`IMEx`]. So, this is either a Single, which
+/// contains a digit for indexing iterators, or a Group, which contains an inner parsed [`IMEx`].
 #[derive(PartialEq, Debug, Clone)]
 pub enum IMExVal {
     Single(usize),
     Group(IMEx),
 }
 
+/// An [`IMExVal`](./enum.IMExVal.html) that has been quantified, for use in a parsed
+/// [`IMEx`](./struct.IMEx.html).
 #[derive(PartialEq, Debug, Clone)]
 pub struct QuantifiedIMExVal {
     pub val: IMExVal,
     pub quantifier: Quantifier,
 }
 
+/// A single-element tuple-struct representing a parsed [`IMEx`](./struct.IMEx.html). Used by
+/// [`IMExIter`](../merges/trait.IMExMerges.html) to perform lazy merging.
 #[derive(PartialEq, Debug, Clone)]
 pub struct IMEx(pub Vec<QuantifiedIMExVal>);
 
 impl IMEx {
+    /// Parse an [`IMEx`](./struct.IMEx.html) from a string.
+    ///
+    /// Results in an error if the IMEx is invalid.
+    ///
+    /// Example:
+    /// ```
+    /// use ::imex::imex::IMEx;
+    /// let imex = IMEx::from("01*(23){4}");
+    /// ```
     pub fn from(imex: &str) -> Result<Self> {
         // TODO: Clean this up, implement simple parser combinator?
         let mut sequence: Vec<QuantifiedIMExVal> = vec![];
