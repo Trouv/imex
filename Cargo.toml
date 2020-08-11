@@ -1,13 +1,10 @@
 [package]
 name = "imex"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Trevor Lovell <trevorlovelldesign@gmail.com>"]
 description = """
-imex is a library for merging multiple iterators into one
-iterator, with the optional use of an IMEx, or
-Iterator-Merging-Expression, for controlling the merge. imex will
-also be a command line tool for merging files line-by-line in the
-future.
+A library for merging multiple iterators into one iterator, with the optional
+use of an IMEx, or Iterator-Merging-Expression, for controlling the merge.
 """
 repository = "https://github.com/Trouv/imex"
 readme = "README.md"
