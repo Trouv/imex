@@ -31,7 +31,7 @@ impl IMEx {
     ///
     /// # Example
     /// ```
-    /// use ::imex::IMEx;
+    /// use imex::IMEx;
     /// let imex = IMEx::from("01*(23){4}");
     /// ```
     pub fn from(imex: &str) -> Result<Self> {

@@ -1,4 +1,4 @@
-use crate::imex::{IMEx, IMExVal, QuantifiedIMExVal};
+use crate::expression::{IMEx, IMExVal, QuantifiedIMExVal};
 use std::cell::RefCell;
 use std::io::{Error, ErrorKind::InvalidInput, Result};
 use std::rc::Rc;

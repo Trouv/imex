@@ -27,7 +27,7 @@
 //!
 //! # Example Usage
 //! ```
-//! use ::imex::*;
+//! use imex::*;
 //!
 //! let iter1 = "123456".chars();
 //! let iter2 = "abc".chars();
@@ -47,11 +47,11 @@
 //!  * [`rot_merge_all`](merges/trait.IMExMerges.html#method.rot_merge_all)
 //!  * [`alt_merge`](merges/trait.IMExMerges.html#method.alt_merge)
 
-pub mod imex;
+pub mod expression;
 pub mod iter;
 pub mod merges;
 pub mod quantifier;
 
-pub use self::imex::IMEx;
+pub use expression::IMEx;
 pub use iter::IMExIter;
 pub use merges::IMExMerges;
