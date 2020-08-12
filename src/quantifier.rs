@@ -1,3 +1,5 @@
+use std::io::{Error, ErrorKind::InvalidInput, Result};
+
 /// Represents a quantifier in a parsed [`IMEx`](../imex/struct.IMEx.html). Either Finite (`{x}`), in
 /// which case a range is contained, or Infinite (`*`).
 #[derive(PartialEq, Debug, Clone)]
@@ -17,6 +19,52 @@ impl Iterator for Quantifier {
                 Some(())
             }
             _ => Some(()),
+        }
+    }
+}
+
+fn parse_digit(input: String) -> Result<(usize, String)> {
+    let mut chars = input.chars();
+    if let Some(c) = chars.next() {
+        if let Some(x) = c.to_digit(10) {
+            Ok((x as usize, chars.collect()))
+        } else {
+            Err(Error::new(
+                InvalidInput,
+                "Bad character inside of '{{/}}' quantifier",
+            ))
+        }
+    } else {
+        Err(Error::new(InvalidInput, "IMEx unexpectedly ended"))
+    }
+}
+
+fn parse_range(input: String) -> Result<(usize, String)> {
+    let (mut range, input) = parse_digit(input)?;
+    let mut chars = input.chars();
+    loop {
+        match chars.next() {
+            Some('}') => return Ok((range, chars.collect())),
+            _ => {
+                let (v, s) = parse_digit(chars.collect())?;
+                chars = s.chars();
+                range *= 10;
+                range += v;
+            }
+        }
+    }
+}
+
+impl Quantifier {
+    pub fn parse(input: String) -> Result<(Quantifier, String)> {
+        let mut chars = input.chars();
+        match chars.next() {
+            Some('{') => {
+                let (range, input) = parse_range(chars.collect())?;
+                Ok((Quantifier::Finite(range), input))
+            }
+            Some('*') => Ok((Quantifier::Infinite, chars.collect())),
+            _ => Ok((Quantifier::Finite(1), input)),
         }
     }
 }

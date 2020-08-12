@@ -10,12 +10,40 @@ pub enum IMExVal {
     Group(IMEx),
 }
 
+impl IMExVal {
+    fn parse(input: String) -> Result<(IMExVal, String)> {
+        let mut chars = input.chars();
+        match chars.next() {
+            Some('(') => {
+                let (imex, input) = IMEx::parse(chars.collect())?;
+                Ok((IMExVal::Group(imex), input))
+            }
+            Some(x) if x.is_digit(10) => Ok((
+                IMExVal::Single(x.to_digit(10).expect("Expected value to be a digit") as usize),
+                chars.collect(),
+            )),
+            _ => Err(Error::new(
+                InvalidInput,
+                "Expected either a digit or a group",
+            )),
+        }
+    }
+}
+
 /// An [`IMExVal`](./enum.IMExVal.html) that has been quantified, for use in a parsed
 /// [`IMEx`](./struct.IMEx.html).
 #[derive(PartialEq, Debug, Clone)]
 pub struct QuantifiedIMExVal {
     pub val: IMExVal,
     pub quantifier: Quantifier,
+}
+
+impl QuantifiedIMExVal {
+    fn parse(input: String) -> Result<(QuantifiedIMExVal, String)> {
+        let (val, input) = IMExVal::parse(input)?;
+        let (quantifier, input) = Quantifier::parse(input)?;
+        Ok((QuantifiedIMExVal { val, quantifier }, input))
+    }
 }
 
 /// A single-element tuple-struct representing a parsed [`IMEx`](./struct.IMEx.html). Used by
@@ -111,6 +139,21 @@ impl IMEx {
             Err(Error::new(InvalidInput, "Unmatched brackets, expected '}'"))
         } else {
             Ok(IMEx(sequence))
+        }
+    }
+
+    fn parse(input: String) -> Result<(IMEx, String)> {
+        let mut chars = input.chars();
+        let mut imex = Vec::<QuantifiedIMExVal>::new();
+        loop {
+            match chars.next() {
+                Some(')') => return Ok((IMEx(imex), chars.collect())),
+                _ => {
+                    let (qimexval, input) = QuantifiedIMExVal::parse(input)?;
+                    chars = input.chars();
+                    imex.push(qimexval);
+                }
+            }
         }
     }
 }
