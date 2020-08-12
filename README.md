@@ -1,10 +1,10 @@
 # IMEx
+[![Latest version](https://img.shields.io/crates/v/imex.svg)](https://crates.io/crates/imex)
+[![Documentation](https://docs.rs/imex/badge.svg)](https://docs.rs/imex)
+
 A library for merging multiple iterators into one iterator, with the optional
 use of an IMEx, or Iterator-Merging-Expression, for controlling the merge. imex
 will also be a command line tool for merging files line-by-line in the future.
-
-[![Latest version](https://img.shields.io/crates/v/imex.svg)](https://crates.io/crates/imex)
-[![Documentation](https://docs.rs/imex/badge.svg)](https://docs.rs/imex)
 
 ## Writing an IMEx
 IMEx is based off of RegEx. A quick reference of IMEx syntax:
@@ -46,11 +46,5 @@ There are two main features planned for imex:
    merged.
 
 ## License
-Licensed under either of
-
- * Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or
-   http://www.apache.org/licenses/LICENSE-2.0)
- * MIT license ([LICENSE-MIT](LICENSE-MIT) or
-   http://opensource.org/licenses/MIT)
-
-at your option.
+Licensed under either of [Apache License, Version 2.0](LICENSE-APACHE) or [MIT
+license](LICENSE-MIT) at your option.
