@@ -3,6 +3,9 @@ A library for merging multiple iterators into one iterator, with the optional
 use of an IMEx, or Iterator-Merging-Expression, for controlling the merge. imex
 will also be a command line tool for merging files line-by-line in the future.
 
+[![Latest version](https://img.shields.io/crates/v/imex.svg)](https://crates.io/crates/imex)
+[![Documentation](https://docs.rs/imex/badge.svg)](https://docs.rs/imex)
+
 ## Writing an IMEx
 IMEx is based off of RegEx. A quick reference of IMEx syntax:
  * Digits - indicates the index of the iterator to consume an item from
