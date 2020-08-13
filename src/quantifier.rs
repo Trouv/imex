@@ -26,6 +26,7 @@ impl Iterator for Quantifier {
 fn parse_digit(input: String) -> Result<(usize, String)> {
     let mut chars = input.chars();
     if let Some(c) = chars.next() {
+        println!("{}", c);
         if let Some(x) = c.to_digit(10) {
             Ok((x as usize, chars.collect()))
         } else {
@@ -40,14 +41,14 @@ fn parse_digit(input: String) -> Result<(usize, String)> {
 }
 
 fn parse_range(input: String) -> Result<(usize, String)> {
-    let (mut range, input) = parse_digit(input)?;
-    let mut chars = input.chars();
+    let (mut range, mut input) = parse_digit(input)?;
     loop {
+        let mut chars = input.chars();
         match chars.next() {
             Some('}') => return Ok((range, chars.collect())),
             _ => {
-                let (v, s) = parse_digit(chars.collect())?;
-                chars = s.chars();
+                let (v, s) = parse_digit(input)?;
+                input = s;
                 range *= 10;
                 range += v;
             }

@@ -15,7 +15,7 @@ impl IMExVal {
         let mut chars = input.chars();
         match chars.next() {
             Some('(') => {
-                let (imex, input) = IMEx::parse(chars.collect())?;
+                let (imex, input) = IMEx::parse_in_parens(chars.collect())?;
                 Ok((IMExVal::Group(imex), input))
             }
             Some(x) if x.is_digit(10) => Ok((
@@ -63,94 +63,37 @@ impl IMEx {
     /// let imex = IMEx::from("01*(23){4}");
     /// ```
     pub fn from(imex: &str) -> Result<Self> {
-        // TODO: Clean this up, implement simple parser combinator?
-        let mut sequence: Vec<QuantifiedIMExVal> = vec![];
+        Ok(IMEx::parse(imex.to_string())?.0)
+    }
 
-        let mut in_brackets = false;
-        let mut inner_quantifier = String::new();
-
-        let mut parens_depth = 0;
-        let mut inner_imex = String::new();
-        for c in imex.chars() {
-            if parens_depth > 0 {
-                if c == '(' {
-                    parens_depth += 1;
-                } else if c == ')' {
-                    parens_depth -= 1;
-                }
-
-                if parens_depth == 0 {
-                    sequence.push(QuantifiedIMExVal {
-                        val: IMExVal::Group(IMEx::from(&inner_imex)?),
-                        quantifier: Quantifier::Finite(1),
-                    });
-                    inner_imex = String::new();
-                } else {
-                    inner_imex.push(c);
-                }
-            } else if in_brackets {
-                if c.is_digit(10) {
-                    inner_quantifier.push(c);
-                } else if c == '}' {
-                    if let Some(i) = sequence.last_mut() {
-                        i.quantifier =
-                            Quantifier::Finite(inner_quantifier.parse::<usize>().expect(""));
-                        in_brackets = false;
-                    } else {
-                        return Err(Error::new(InvalidInput, "Bad target for '{/}' quantifier"));
-                    }
-                } else {
-                    return Err(Error::new(
-                        InvalidInput,
-                        format!(
-                            "Only digits can be inside '{{/}}' quantifiers, received: {}",
-                            c
-                        ),
-                    ));
-                }
-            } else {
-                if c.is_digit(10) {
-                    sequence.push(QuantifiedIMExVal {
-                        val: IMExVal::Single(c.to_digit(10).expect("") as usize),
-                        quantifier: Quantifier::Finite(1),
-                    });
-                } else if c == '(' {
-                    parens_depth += 1;
-                } else if c == '{' {
-                    in_brackets = true;
-                } else if c == '*' {
-                    if let Some(i) = sequence.last_mut() {
-                        i.quantifier = Quantifier::Infinite;
-                    } else {
-                        return Err(Error::new(InvalidInput, "Bad target for '*' quantifier"));
-                    }
-                } else {
-                    return Err(Error::new(InvalidInput, format!("Bad char in imex: {}", c)));
+    fn parse_in_parens(input: String) -> Result<(IMEx, String)> {
+        let mut imex = Vec::<QuantifiedIMExVal>::new();
+        let mut input = input;
+        loop {
+            println!("{:?}", imex);
+            let mut chars = input.chars();
+            match chars.next() {
+                Some(')') => return Ok((IMEx(imex), chars.collect())),
+                _ => {
+                    let (qimexval, s) = QuantifiedIMExVal::parse(input)?;
+                    input = s;
+                    imex.push(qimexval);
                 }
             }
-        }
-
-        if parens_depth > 0 {
-            Err(Error::new(
-                InvalidInput,
-                "Unmatched parentheses, expected ')'",
-            ))
-        } else if in_brackets {
-            Err(Error::new(InvalidInput, "Unmatched brackets, expected '}'"))
-        } else {
-            Ok(IMEx(sequence))
         }
     }
 
     fn parse(input: String) -> Result<(IMEx, String)> {
-        let mut chars = input.chars();
         let mut imex = Vec::<QuantifiedIMExVal>::new();
+        let mut input = input;
         loop {
+            println!("{:?}", imex);
+            let mut chars = input.chars();
             match chars.next() {
-                Some(')') => return Ok((IMEx(imex), chars.collect())),
+                None => return Ok((IMEx(imex), chars.collect())),
                 _ => {
-                    let (qimexval, input) = QuantifiedIMExVal::parse(input)?;
-                    chars = input.chars();
+                    let (qimexval, s) = QuantifiedIMExVal::parse(input)?;
+                    input = s;
                     imex.push(qimexval);
                 }
             }
