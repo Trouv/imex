@@ -50,6 +50,7 @@
 pub mod expression;
 pub mod iter;
 pub mod merges;
+pub mod parser;
 pub mod quantifier;
 
 pub use expression::IMEx;

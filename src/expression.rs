@@ -1,3 +1,4 @@
+use crate::parser;
 use crate::quantifier::Quantifier;
 use std::io::{Error, ErrorKind::InvalidInput, Result};
 
