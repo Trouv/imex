@@ -1,9 +1,8 @@
-use crate::expression::*;
-use crate::quantifier::*;
+use crate::expression::{IMEx, IMExVal, QuantifiedIMExVal};
+use crate::quantifier::Quantifier;
 use nom::branch::alt;
 use nom::character::complete::{char, digit1, one_of};
-use nom::combinator::all_consuming;
-use nom::combinator::opt;
+use nom::combinator::{all_consuming, opt};
 use nom::multi::{many0, many_till};
 use nom::sequence::delimited;
 use nom::IResult;
