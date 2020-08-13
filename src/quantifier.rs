@@ -23,53 +23,6 @@ impl Iterator for Quantifier {
     }
 }
 
-fn parse_digit(input: String) -> Result<(usize, String)> {
-    let mut chars = input.chars();
-    if let Some(c) = chars.next() {
-        println!("{}", c);
-        if let Some(x) = c.to_digit(10) {
-            Ok((x as usize, chars.collect()))
-        } else {
-            Err(Error::new(
-                InvalidInput,
-                "Bad character inside of '{{/}}' quantifier",
-            ))
-        }
-    } else {
-        Err(Error::new(InvalidInput, "IMEx unexpectedly ended"))
-    }
-}
-
-fn parse_range(input: String) -> Result<(usize, String)> {
-    let (mut range, mut input) = parse_digit(input)?;
-    loop {
-        let mut chars = input.chars();
-        match chars.next() {
-            Some('}') => return Ok((range, chars.collect())),
-            _ => {
-                let (v, s) = parse_digit(input)?;
-                input = s;
-                range *= 10;
-                range += v;
-            }
-        }
-    }
-}
-
-impl Quantifier {
-    pub fn parse(input: String) -> Result<(Quantifier, String)> {
-        let mut chars = input.chars();
-        match chars.next() {
-            Some('{') => {
-                let (range, input) = parse_range(chars.collect())?;
-                Ok((Quantifier::Finite(range), input))
-            }
-            Some('*') => Ok((Quantifier::Infinite, chars.collect())),
-            _ => Ok((Quantifier::Finite(1), input)),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

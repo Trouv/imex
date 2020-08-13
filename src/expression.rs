@@ -1,4 +1,4 @@
-use crate::parser;
+use crate::parser::parse_imex;
 use crate::quantifier::Quantifier;
 use std::io::{Error, ErrorKind::InvalidInput, Result};
 
@@ -11,40 +11,12 @@ pub enum IMExVal {
     Group(IMEx),
 }
 
-impl IMExVal {
-    fn parse(input: String) -> Result<(IMExVal, String)> {
-        let mut chars = input.chars();
-        match chars.next() {
-            Some('(') => {
-                let (imex, input) = IMEx::parse_in_parens(chars.collect())?;
-                Ok((IMExVal::Group(imex), input))
-            }
-            Some(x) if x.is_digit(10) => Ok((
-                IMExVal::Single(x.to_digit(10).expect("Expected value to be a digit") as usize),
-                chars.collect(),
-            )),
-            _ => Err(Error::new(
-                InvalidInput,
-                "Expected either a digit or a group",
-            )),
-        }
-    }
-}
-
 /// An [`IMExVal`](./enum.IMExVal.html) that has been quantified, for use in a parsed
 /// [`IMEx`](./struct.IMEx.html).
 #[derive(PartialEq, Debug, Clone)]
 pub struct QuantifiedIMExVal {
     pub val: IMExVal,
     pub quantifier: Quantifier,
-}
-
-impl QuantifiedIMExVal {
-    fn parse(input: String) -> Result<(QuantifiedIMExVal, String)> {
-        let (val, input) = IMExVal::parse(input)?;
-        let (quantifier, input) = Quantifier::parse(input)?;
-        Ok((QuantifiedIMExVal { val, quantifier }, input))
-    }
 }
 
 /// A single-element tuple-struct representing a parsed [`IMEx`](./struct.IMEx.html). Used by
@@ -63,41 +35,10 @@ impl IMEx {
     /// use imex::IMEx;
     /// let imex = IMEx::from("01*(23){4}");
     /// ```
-    pub fn from(imex: &str) -> Result<Self> {
-        Ok(IMEx::parse(imex.to_string())?.0)
-    }
-
-    fn parse_in_parens(input: String) -> Result<(IMEx, String)> {
-        let mut imex = Vec::<QuantifiedIMExVal>::new();
-        let mut input = input;
-        loop {
-            println!("{:?}", imex);
-            let mut chars = input.chars();
-            match chars.next() {
-                Some(')') => return Ok((IMEx(imex), chars.collect())),
-                _ => {
-                    let (qimexval, s) = QuantifiedIMExVal::parse(input)?;
-                    input = s;
-                    imex.push(qimexval);
-                }
-            }
-        }
-    }
-
-    fn parse(input: String) -> Result<(IMEx, String)> {
-        let mut imex = Vec::<QuantifiedIMExVal>::new();
-        let mut input = input;
-        loop {
-            println!("{:?}", imex);
-            let mut chars = input.chars();
-            match chars.next() {
-                None => return Ok((IMEx(imex), chars.collect())),
-                _ => {
-                    let (qimexval, s) = QuantifiedIMExVal::parse(input)?;
-                    input = s;
-                    imex.push(qimexval);
-                }
-            }
+    pub fn from(imex_str: &str) -> Result<Self> {
+        match parse_imex(imex_str) {
+            Ok((_, imex)) => Ok(imex),
+            Err(_) => Err(Error::new(InvalidInput, "bad")),
         }
     }
 }
