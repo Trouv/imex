@@ -19,7 +19,7 @@ pub struct QuantifiedIMExVal {
 }
 
 /// A single-element tuple-struct representing a parsed [`IMEx`](./struct.IMEx.html). Used by
-/// [`IMExIter`](../merges/trait.IMExMerges.html) to perform lazy merging.
+/// [`IMExIter`](../../merges/trait.IMExMerges.html) to perform lazy merging.
 #[derive(PartialEq, Debug, Clone)]
 pub struct IMEx(pub Vec<QuantifiedIMExVal>);
 

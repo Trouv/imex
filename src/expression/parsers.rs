@@ -60,6 +60,14 @@ fn parse_inner_imex(input: &str) -> IResult<&str, IMEx> {
     Ok((input, IMEx(imex.0)))
 }
 
+/// Parser combinator for parsing an [`IMEx`](../imex/struct.IMEx.html), making use of the
+/// [`nom`](https://docs.rs/nom/6.0.0-alpha1/nom/index.html) library. Unless you're building your
+/// own parser that incorporates IMExes using parser combinators, you may prefer to use
+/// [`IMEx::from`](../imex/struct.IMEx.html#method.from), which uses this parser combinator but loses
+/// the parser combinator details.
+///
+/// # Error
+/// Results in an error if the input string is not a valid IMEx.
 pub fn parse_imex(input: &str) -> IResult<&str, IMEx> {
     let (input, imex) = all_consuming(many0(parse_quantified_imex_val))(input)?;
     Ok((input, IMEx(imex)))
