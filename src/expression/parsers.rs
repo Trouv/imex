@@ -63,8 +63,8 @@ fn parse_inner_imex(input: &str) -> IResult<&str, IMEx> {
 /// Parser combinator for parsing an [`IMEx`](../imex/struct.IMEx.html), making use of the
 /// [`nom`](https://docs.rs/nom/6.0.0-alpha1/nom/index.html) library. Unless you're building your
 /// own parser that incorporates IMExes using parser combinators, you may prefer to use
-/// [`IMEx::from`](../imex/struct.IMEx.html#method.from), which uses this parser combinator but loses
-/// the parser combinator details.
+/// [`IMEx::from`](../imex/struct.IMEx.html#method.from), which uses this function but loses the
+/// parser combinator details.
 ///
 /// # Error
 /// Results in an error if the input string is not a valid IMEx.
@@ -80,6 +80,10 @@ fn parse_inner_imex(input: &str) -> IResult<&str, IMEx> {
 ///     IMEx::from("12(34){56}").expect("Invalid IMEx")
 /// );
 /// ```
+/// Currently, this parser combinator expects to be "all consuming", which means it will fail if
+/// there is any input string remaining after parsing an IMEx. This could pose compatibility issues
+/// if you want to use this in your own set of parser combinators. If this is a use case for you,
+/// consider contributing to this project on [github](https://github.com/Trouv/imex).
 pub fn parse_imex(input: &str) -> IResult<&str, IMEx> {
     let (input, imex) = all_consuming(many0(parse_quantified_imex_val))(input)?;
     Ok((input, IMEx(imex)))
