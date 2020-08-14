@@ -14,7 +14,10 @@ use nom::{
 
 fn parse_finite_quantifier(input: &str) -> IResult<&str, Quantifier> {
     match opt(delimited(char('{'), digit1, char('}')))(input)? {
-        (input, Some(x)) => Ok((input, Quantifier::Finite(x.parse::<usize>().unwrap()))),
+        (input, Some(x)) => Ok((
+            input,
+            Quantifier::Finite(x.parse::<usize>().expect("Expected value to be a digit")),
+        )),
         (input, None) => Ok((input, Quantifier::Finite(1))),
     }
 }

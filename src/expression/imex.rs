@@ -37,7 +37,7 @@ impl IMEx {
     pub fn from(imex_str: &str) -> Result<Self> {
         match parse_imex(imex_str) {
             Ok((_, imex)) => Ok(imex),
-            Err(_) => Err(Error::new(InvalidInput, "bad")),
+            Err(e) => Err(Error::new(InvalidInput, format!("{}", e))),
         }
     }
 }
