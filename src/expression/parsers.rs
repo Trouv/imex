@@ -68,6 +68,18 @@ fn parse_inner_imex(input: &str) -> IResult<&str, IMEx> {
 ///
 /// # Error
 /// Results in an error if the input string is not a valid IMEx.
+///
+/// # Example
+/// ```
+/// use imex::expression::{IMEx, parsers::parse_imex};
+///
+/// let (remaining_input, parsed_imex) = parse_imex("12(34){56}")
+///     .expect("Invalid IMEx");
+/// assert_eq!(
+///     parsed_imex,
+///     IMEx::from("12(34){56}").expect("Invalid IMEx")
+/// );
+/// ```
 pub fn parse_imex(input: &str) -> IResult<&str, IMEx> {
     let (input, imex) = all_consuming(many0(parse_quantified_imex_val))(input)?;
     Ok((input, IMEx(imex)))

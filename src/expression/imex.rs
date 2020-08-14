@@ -84,7 +84,7 @@ mod tests {
 
     #[test]
     fn parens_gives_group_imex() -> Result<()> {
-        let i = IMEx::from("1(1)(9)*(4){4}(1(1))()")?;
+        let i = IMEx::from("1(1)(9)*(4){45}(1(1))()")?;
 
         assert_eq!(
             i,
@@ -112,7 +112,7 @@ mod tests {
                         val: IMExVal::Single(4),
                         quantifier: Quantifier::Finite(1),
                     }])),
-                    quantifier: Quantifier::Finite(4),
+                    quantifier: Quantifier::Finite(45),
                 },
                 QuantifiedIMExVal {
                     val: IMExVal::Group(IMEx(vec![
