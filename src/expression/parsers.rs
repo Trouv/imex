@@ -1,12 +1,16 @@
-use crate::expression::*;
-use crate::quantifier::*;
-use nom::branch::alt;
-use nom::character::complete::{char, digit1, one_of};
-use nom::combinator::all_consuming;
-use nom::combinator::opt;
-use nom::multi::{many0, many_till};
-use nom::sequence::delimited;
-use nom::IResult;
+use super::{
+    imex::{IMEx, IMExVal, QuantifiedIMExVal},
+    quantifier::Quantifier,
+};
+use nom::{
+    branch::alt,
+    character::complete::{char, digit1, one_of},
+    combinator::all_consuming,
+    combinator::opt,
+    multi::{many0, many_till},
+    sequence::delimited,
+    IResult,
+};
 
 fn parse_finite_quantifier(input: &str) -> IResult<&str, Quantifier> {
     match opt(delimited(char('{'), digit1, char('}')))(input)? {

@@ -1,5 +1,4 @@
-use crate::parser::parse_imex;
-use crate::quantifier::Quantifier;
+use super::{parsers::parse_imex, quantifier::Quantifier};
 use std::io::{Error, ErrorKind::InvalidInput, Result};
 
 /// [`IMEx`]: ./struct.IMEx.html
@@ -32,7 +31,7 @@ impl IMEx {
     ///
     /// # Example
     /// ```
-    /// use imex::IMEx;
+    /// use imex::expression::IMEx;
     /// let imex = IMEx::from("01*(23){4}");
     /// ```
     pub fn from(imex_str: &str) -> Result<Self> {

@@ -16,7 +16,7 @@ where
     ///
     /// # Example
     /// ```
-    /// use ::imex::*;
+    /// use imex::IMExMerges;
     ///
     /// let merged = "12345"
     ///     .chars()
@@ -34,7 +34,7 @@ where
     ///
     /// # Example
     /// ```
-    /// use ::imex::*;
+    /// use imex::IMExMerges;
     ///
     /// let merged = "1234"
     ///     .chars()
@@ -66,7 +66,7 @@ where
     ///
     /// # Example
     /// ```
-    /// use ::imex::*;
+    /// use imex::IMExMerges;
     ///
     /// let merged = "12345"
     ///     .chars()
@@ -89,7 +89,7 @@ where
     ///
     /// # Example
     /// ```
-    /// use ::imex::*;
+    /// use imex::IMExMerges;
     ///
     /// let merged = "12"
     ///     .chars()

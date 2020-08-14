@@ -27,7 +27,7 @@
 //!
 //! # Example Usage
 //! ```
-//! use imex::*;
+//! use imex::IMExMerges;
 //!
 //! let iter1 = "123456".chars();
 //! let iter2 = "abc".chars();
@@ -50,9 +50,6 @@
 pub mod expression;
 pub mod iter;
 pub mod merges;
-pub mod parser;
-pub mod quantifier;
 
-pub use expression::IMEx;
 pub use iter::IMExIter;
 pub use merges::IMExMerges;
