@@ -35,7 +35,6 @@ where
     /// let imex_iter = IMExIter::from(vec!["1234".chars(), "abcde".chars()], "(001)*")
     ///     .expect("Invalid IMEx");
     /// let merged = imex_iter
-    ///     .map(|e| e.expect("Index out of range"))
     ///     .collect::<String>();
     ///
     /// assert_eq!(merged, "12a34bcde");
@@ -54,7 +53,7 @@ impl<T, I> Iterator for IMExIter<T, I>
 where
     T: Iterator<Item = I>,
 {
-    type Item = Result<I>;
+    type Item = I;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
@@ -75,15 +74,12 @@ where
                         IMExVal::Single(i) => {
                             if let Some(s) = (*self.iters).borrow_mut().get_mut(*i) {
                                 if let Some(e) = s.next() {
-                                    return Some(Ok(e));
+                                    return Some(e);
                                 } else {
                                     self.current_qimexval = None;
                                 }
                             } else {
-                                return Some(Err(Error::new(
-                                    InvalidInput,
-                                    format!("Zprex item out of file range: {}", i),
-                                )));
+                                self.current_qimexval = None;
                             }
                         }
                         IMExVal::Group(i) => {
@@ -131,7 +127,7 @@ mod tests {
         let iters = vec!["00000".chars(), "11111".chars()];
         let i = IMExIter::from(iters, "01(10){3}")?;
 
-        assert_eq!(i.map(|c| c.unwrap()).collect::<String>(), "01101010");
+        assert_eq!(i.collect::<String>(), "01101010");
 
         Ok(())
     }
@@ -141,7 +137,7 @@ mod tests {
         let iters = vec!["00000000".chars(), "111111".chars()];
         let i = IMExIter::from(iters, "0{3}1(01){5}")?;
 
-        assert_eq!(i.map(|c| c.unwrap()).collect::<String>(), "00010101010101");
+        assert_eq!(i.collect::<String>(), "00010101010101");
 
         Ok(())
     }
@@ -151,21 +147,17 @@ mod tests {
         let iters = vec!["000".chars(), "111".chars(), "22222".chars()];
         let i = IMExIter::from(iters, "0*(12)*")?;
 
-        assert_eq!(i.map(|c| c.unwrap()).collect::<String>(), "00012121222");
+        assert_eq!(i.collect::<String>(), "00012121222");
 
         Ok(())
     }
 
     #[test]
-    fn out_of_range_imex_fails() -> Result<()> {
+    fn out_of_range_imex_skips() -> Result<()> {
         let iters = vec!["000".chars(), "111".chars()];
-        let mut i = IMExIter::from(iters, "0120")?;
+        let i = IMExIter::from(iters, "0120")?;
 
-        if let Some(r) = i.nth(2) {
-            r.unwrap_err();
-        } else {
-            panic!("Expected an error, not None");
-        }
+        assert_eq!(i.collect::<String>(), "010");
 
         Ok(())
     }
@@ -175,7 +167,7 @@ mod tests {
         let iters = vec!["000".chars(), "111".chars()];
         let i = IMExIter::from(iters, "")?;
 
-        assert_eq!(i.map(|c| c.unwrap()).collect::<String>(), String::new());
+        assert_eq!(i.collect::<String>(), String::new());
 
         Ok(())
     }
@@ -185,26 +177,17 @@ mod tests {
         let iters = vec!["".chars(), "".chars(), "".chars()];
         let i = IMExIter::from(iters, "0120")?;
 
-        assert_eq!(i.map(|c| c.unwrap()).collect::<String>(), String::new());
+        assert_eq!(i.collect::<String>(), String::new());
 
         Ok(())
     }
 
     #[test]
-    fn empty_iter_list_only_passes_for_empty_imex() -> Result<()> {
+    fn empty_iter_list_gives_empty_merge() -> Result<()> {
         let iters: Vec<std::str::Chars> = vec![];
-        let mut i = IMExIter::from(iters, "0120")?;
+        let i = IMExIter::from(iters, "0120")?;
 
-        if let Some(r) = i.nth(2) {
-            r.unwrap_err();
-        } else {
-            panic!("Expected an error, not None");
-        }
-
-        let iters: Vec<std::str::Chars> = vec![];
-        let i = IMExIter::from(iters, "")?;
-
-        assert_eq!(i.map(|c| c.unwrap()).collect::<String>(), String::new());
+        assert_eq!(i.collect::<String>(), String::new());
 
         Ok(())
     }

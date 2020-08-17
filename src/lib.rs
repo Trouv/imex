@@ -35,7 +35,6 @@
 //! let merged = iter1
 //!     .imex_merge(iter2, "0(01){4}")
 //!     .expect("Invalid IMEx")
-//!     .map(|e| e.expect("Index out of range"))
 //!     .collect::<String>();
 //!
 //! assert_eq!(merged, "12a3b4c5");

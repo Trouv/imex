@@ -22,7 +22,6 @@ where
     ///     .chars()
     ///     .imex_merge_all(&mut vec!["abcde".chars(), "!@#$%".chars()], "0(1120)*")
     ///     .expect("Invalid IMEx")
-    ///     .map(|e| e.expect("Index out of range"))
     ///     .collect::<String>();
     ///
     /// assert_eq!(merged, "1ab!2cd@3e#4$5%");
@@ -39,7 +38,6 @@ where
     /// let merged = "1234"
     ///     .chars()
     ///     .rot_merge_all(&mut vec!["abcdefg".chars(), "!@#".chars()])
-    ///     .map(|e| e.expect("Index out of range"))
     ///     .collect::<String>();
     ///
     /// assert_eq!(merged, "1a!2b@3c#4defg");
@@ -72,7 +70,6 @@ where
     ///     .chars()
     ///     .imex_merge("ab".chars(), "0*1*")
     ///     .expect("Invalid IMEx")
-    ///     .map(|e| e.expect("Index out of range"))
     ///     .collect::<String>();
     ///
     /// assert_eq!(merged, "12345ab");
@@ -94,7 +91,6 @@ where
     /// let merged = "12"
     ///     .chars()
     ///     .alt_merge("ab".chars())
-    ///     .map(|e| e.expect("Index out of range"))
     ///     .collect::<String>();
     ///
     /// assert_eq!(merged, "1a2b");
