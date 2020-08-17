@@ -1,10 +1,5 @@
 use crate::expression::{IMEx, IMExVal, QuantifiedIMExVal};
-use std::{
-    cell::RefCell,
-    io::{Error, ErrorKind::InvalidInput, Result},
-    rc::Rc,
-    vec::IntoIter,
-};
+use std::{cell::RefCell, io::Result, rc::Rc, vec::IntoIter};
 
 /// An iterator that lazily merges other iterators using an [`IMEx`](../expression/imex/struct.IMEx.html). The result of using the merge
 /// functions defined on the [`IMExMerges`](../merges/trait.IMExMerges.html) trait.
