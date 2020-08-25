@@ -19,20 +19,20 @@ pub enum IMExVal {
 pub struct QuantifiedIMExVal {
     pub val: IMExVal,
     pub quantifier: Quantifier,
-    current_val: (IMExVal, bool),
+    current_val: (Option<IMExVal>, bool),
 }
 
 impl QuantifiedIMExVal {
     pub fn from(val: IMExVal, quantifier: Quantifier) -> QuantifiedIMExVal {
         QuantifiedIMExVal {
-            current_val: (val.clone(), true),
+            current_val: (None, true),
             val,
             quantifier,
         }
     }
 }
 
-trait IMExIterator<T, I>
+pub trait IMExIterator<T, I>
 where
     T: Iterator<Item = I>,
 {
@@ -60,13 +60,19 @@ where
 {
     fn iterate(&mut self, iters: &mut Vec<T>) -> Option<I> {
         loop {
-            match self.current_val.0.iterate(iters) {
-                Some(res) => return Some(res),
+            match &mut self.current_val.0 {
+                Some(val) => match val.iterate(iters) {
+                    Some(res) => {
+                        self.current_val.1 = true;
+                        return Some(res);
+                    }
+                    None => self.current_val.0 = None,
+                },
                 None => match (self.quantifier.next(), self.current_val.1) {
-                    (Some(_), true) => self.current_val = (self.val.clone(), false),
+                    (Some(_), true) => self.current_val = (Some(self.val.clone()), false),
                     _ => return None,
                 },
-            };
+            }
         }
     }
 }
@@ -76,19 +82,33 @@ where
     T: Iterator<Item = I>,
 {
     fn iterate(&mut self, iters: &mut Vec<T>) -> Option<I> {
-        None
+        loop {
+            match &mut self.current_val {
+                Some(val) => match val.iterate(iters) {
+                    Some(res) => return Some(res),
+                    None => self.current_val = None,
+                },
+                None => match self.vals.next() {
+                    Some(val) => self.current_val = Some(Box::new(val)),
+                    None => return None,
+                },
+            }
+        }
     }
 }
 
 /// A single-element tuple-struct representing a parsed [`IMEx`](./struct.IMEx.html). Used by
 /// [`IMExIter`](../../merges/trait.IMExMerges.html) to perform lazy merging.
 #[derive(Debug, Clone)]
-pub struct IMEx(pub IntoIter<QuantifiedIMExVal>);
+pub struct IMEx {
+    pub vals: IntoIter<QuantifiedIMExVal>,
+    current_val: Option<Box<QuantifiedIMExVal>>,
+}
 
 impl PartialEq for IMEx {
     fn eq(&self, other: &IMEx) -> bool {
-        self.0.clone().collect::<Vec<QuantifiedIMExVal>>()
-            == other.0.clone().collect::<Vec<QuantifiedIMExVal>>()
+        self.vals.clone().collect::<Vec<QuantifiedIMExVal>>()
+            == other.vals.clone().collect::<Vec<QuantifiedIMExVal>>()
     }
 }
 
@@ -109,6 +129,13 @@ impl IMEx {
             Err(e) => Err(Error::new(InvalidInput, format!("{}", e))),
         }
     }
+
+    pub fn new(vals: IntoIter<QuantifiedIMExVal>) -> IMEx {
+        IMEx {
+            vals,
+            current_val: None,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -119,7 +146,7 @@ mod tests {
     fn empty_string_gives_empty_group_imex() -> Result<()> {
         let i = IMEx::from("")?;
 
-        assert_eq!(i, IMEx(vec![].into_iter()));
+        assert_eq!(i, IMEx::new(vec![].into_iter()));
         Ok(())
     }
 
@@ -129,7 +156,7 @@ mod tests {
 
         assert_eq!(
             i,
-            IMEx(
+            IMEx::new(
                 vec![
                     QuantifiedIMExVal::from(IMExVal::Single(1), Quantifier::Finite(1),),
                     QuantifiedIMExVal::from(IMExVal::Single(3), Quantifier::Finite(3),),
@@ -148,11 +175,11 @@ mod tests {
 
         assert_eq!(
             i,
-            IMEx(
+            IMEx::new(
                 vec![
                     QuantifiedIMExVal::from(IMExVal::Single(1), Quantifier::Finite(1),),
                     QuantifiedIMExVal::from(
-                        IMExVal::Group(IMEx(
+                        IMExVal::Group(IMEx::new(
                             vec![QuantifiedIMExVal::from(
                                 IMExVal::Single(1),
                                 Quantifier::Finite(1),
@@ -162,7 +189,7 @@ mod tests {
                         Quantifier::Finite(1),
                     ),
                     QuantifiedIMExVal::from(
-                        IMExVal::Group(IMEx(
+                        IMExVal::Group(IMEx::new(
                             vec![QuantifiedIMExVal::from(
                                 IMExVal::Single(9),
                                 Quantifier::Finite(1),
@@ -172,7 +199,7 @@ mod tests {
                         Quantifier::Infinite,
                     ),
                     QuantifiedIMExVal::from(
-                        IMExVal::Group(IMEx(
+                        IMExVal::Group(IMEx::new(
                             vec![QuantifiedIMExVal::from(
                                 IMExVal::Single(4),
                                 Quantifier::Finite(1),
@@ -182,11 +209,11 @@ mod tests {
                         Quantifier::Finite(45),
                     ),
                     QuantifiedIMExVal::from(
-                        IMExVal::Group(IMEx(
+                        IMExVal::Group(IMEx::new(
                             vec![
                                 QuantifiedIMExVal::from(IMExVal::Single(1), Quantifier::Finite(1),),
                                 QuantifiedIMExVal::from(
-                                    IMExVal::Group(IMEx(
+                                    IMExVal::Group(IMEx::new(
                                         vec![QuantifiedIMExVal::from(
                                             IMExVal::Single(1),
                                             Quantifier::Finite(1),
@@ -201,7 +228,7 @@ mod tests {
                         Quantifier::Finite(1),
                     ),
                     QuantifiedIMExVal::from(
-                        IMExVal::Group(IMEx(vec![].into_iter())),
+                        IMExVal::Group(IMEx::new(vec![].into_iter())),
                         Quantifier::Finite(1),
                     )
                 ]

@@ -1,4 +1,4 @@
-use crate::expression::{IMEx, IMExVal, QuantifiedIMExVal};
+use crate::expression::{imex::IMExIterator, IMEx};
 use std::{cell::RefCell, io::Result, rc::Rc, vec::IntoIter};
 
 /// An iterator that lazily merges other iterators using an
@@ -8,8 +8,8 @@ pub struct IMExIter<T, I>
 where
     T: Iterator<Item = I>,
 {
-    iters: Rc<RefCell<Vec<T>>>,
-    imex: IntoIter<QuantifiedIMExVal>,
+    iters: Vec<T>,
+    imex: IMEx,
 }
 
 impl<T, I> IMExIter<T, I>
@@ -35,8 +35,8 @@ where
     /// ```
     pub fn from(iters: Vec<T>, imex: &str) -> Result<Self> {
         Ok(IMExIter::<T, I> {
-            iters: Rc::new(RefCell::new(iters)),
-            imex: IMEx::from(imex)?.0.into_iter(),
+            iters,
+            imex: IMEx::from(imex)?,
         })
     }
 }
@@ -48,7 +48,7 @@ where
     type Item = I;
 
     fn next(&mut self) -> Option<Self::Item> {
-        None
+        self.imex.iterate(&mut self.iters)
     }
 }
 
