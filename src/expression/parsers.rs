@@ -11,6 +11,7 @@ use nom::{
     sequence::delimited,
     IResult,
 };
+use std::iter::once;
 
 fn parse_finite_quantifier(input: &str) -> IResult<&str, Quantifier> {
     match opt(delimited(char('{'), digit1, char('}')))(input)? {
@@ -35,7 +36,7 @@ fn parse_single_imex_val(input: &str) -> IResult<&str, IMExVal> {
     let (input, x) = one_of("0123456789")(input)?;
     Ok((
         input,
-        IMExVal::Single(Some(
+        IMExVal::Single(once(
             x.to_digit(10).expect("Expected value to be a digit") as usize
         )),
     ))

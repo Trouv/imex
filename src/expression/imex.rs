@@ -1,16 +1,27 @@
 use super::{parsers::parse_imex, quantifier::Quantifier};
 use std::{
     io::{Error, ErrorKind::InvalidInput, Result},
+    iter::Once,
     vec::IntoIter,
 };
 
 /// [`IMEx`]: ./struct.IMEx.html
 /// Represents a quantifiable value in a parsed [`IMEx`]. So, this is either a Single, which
 /// contains a digit for indexing iterators, or a Group, which contains an inner parsed [`IMEx`].
-#[derive(PartialEq, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub enum IMExVal {
-    Single(Option<usize>),
+    Single(Once<usize>),
     Group(IMEx),
+}
+
+impl PartialEq for IMExVal {
+    fn eq(&self, other: &IMExVal) -> bool {
+        match (self, other) {
+            (IMExVal::Single(a), IMExVal::Single(b)) => a.clone().next() == b.clone().next(),
+            (IMExVal::Group(a), IMExVal::Group(b)) => a.eq(b),
+            _ => false,
+        }
+    }
 }
 
 /// An [`IMExVal`](./enum.IMExVal.html) that has been quantified, for use in a parsed
@@ -45,14 +56,13 @@ where
 {
     fn iterate(&mut self, iters: &mut Vec<T>) -> Option<I> {
         match self {
-            IMExVal::Single(Some(index)) => match iters.get_mut(*index) {
-                Some(iter) => {
-                    *self = IMExVal::Single(None);
-                    iter.next()
-                }
+            IMExVal::Single(once) => match once.next() {
+                Some(index) => match iters.get_mut(index) {
+                    Some(iter) => iter.next(),
+                    None => None,
+                },
                 None => None,
             },
-            IMExVal::Single(None) => None,
             IMExVal::Group(imex) => imex.iterate(iters),
         }
     }
@@ -145,6 +155,7 @@ impl IMEx {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::iter::once;
 
     #[test]
     fn empty_string_gives_empty_group_imex() -> Result<()> {
@@ -162,10 +173,10 @@ mod tests {
             i,
             IMEx::new(
                 vec![
-                    QuantifiedIMExVal::from(IMExVal::Single(Some(1)), Quantifier::Finite(1),),
-                    QuantifiedIMExVal::from(IMExVal::Single(Some(3)), Quantifier::Finite(3),),
-                    QuantifiedIMExVal::from(IMExVal::Single(Some(9)), Quantifier::Infinite,),
-                    QuantifiedIMExVal::from(IMExVal::Single(Some(1)), Quantifier::Finite(1),),
+                    QuantifiedIMExVal::from(IMExVal::Single(once(1)), Quantifier::Finite(1),),
+                    QuantifiedIMExVal::from(IMExVal::Single(once(3)), Quantifier::Finite(3),),
+                    QuantifiedIMExVal::from(IMExVal::Single(once(9)), Quantifier::Infinite,),
+                    QuantifiedIMExVal::from(IMExVal::Single(once(1)), Quantifier::Finite(1),),
                 ]
                 .into_iter(),
             )
@@ -181,11 +192,11 @@ mod tests {
             i,
             IMEx::new(
                 vec![
-                    QuantifiedIMExVal::from(IMExVal::Single(Some(1)), Quantifier::Finite(1),),
+                    QuantifiedIMExVal::from(IMExVal::Single(once(1)), Quantifier::Finite(1),),
                     QuantifiedIMExVal::from(
                         IMExVal::Group(IMEx::new(
                             vec![QuantifiedIMExVal::from(
-                                IMExVal::Single(Some(1)),
+                                IMExVal::Single(once(1)),
                                 Quantifier::Finite(1),
                             )]
                             .into_iter()
@@ -195,7 +206,7 @@ mod tests {
                     QuantifiedIMExVal::from(
                         IMExVal::Group(IMEx::new(
                             vec![QuantifiedIMExVal::from(
-                                IMExVal::Single(Some(9)),
+                                IMExVal::Single(once(9)),
                                 Quantifier::Finite(1),
                             )]
                             .into_iter()
@@ -205,7 +216,7 @@ mod tests {
                     QuantifiedIMExVal::from(
                         IMExVal::Group(IMEx::new(
                             vec![QuantifiedIMExVal::from(
-                                IMExVal::Single(Some(4)),
+                                IMExVal::Single(once(4)),
                                 Quantifier::Finite(1),
                             )]
                             .into_iter()
@@ -216,13 +227,13 @@ mod tests {
                         IMExVal::Group(IMEx::new(
                             vec![
                                 QuantifiedIMExVal::from(
-                                    IMExVal::Single(Some(1)),
+                                    IMExVal::Single(once(1)),
                                     Quantifier::Finite(1),
                                 ),
                                 QuantifiedIMExVal::from(
                                     IMExVal::Group(IMEx::new(
                                         vec![QuantifiedIMExVal::from(
-                                            IMExVal::Single(Some(1)),
+                                            IMExVal::Single(once(1)),
                                             Quantifier::Finite(1),
                                         )]
                                         .into_iter()
