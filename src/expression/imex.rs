@@ -19,6 +19,17 @@ pub enum IMExVal {
 pub struct QuantifiedIMExVal {
     pub val: IMExVal,
     pub quantifier: Quantifier,
+    current_val: Option<IMExVal>,
+}
+
+impl QuantifiedIMExVal {
+    pub fn from(val: IMExVal, quantifier: Quantifier) -> QuantifiedIMExVal {
+        QuantifiedIMExVal {
+            val,
+            quantifier,
+            current_val: None,
+        }
+    }
 }
 
 /// A single-element tuple-struct representing a parsed [`IMEx`](./struct.IMEx.html). Used by
@@ -72,22 +83,10 @@ mod tests {
             i,
             IMEx(
                 vec![
-                    QuantifiedIMExVal {
-                        val: IMExVal::Single(1),
-                        quantifier: Quantifier::Finite(1),
-                    },
-                    QuantifiedIMExVal {
-                        val: IMExVal::Single(3),
-                        quantifier: Quantifier::Finite(3),
-                    },
-                    QuantifiedIMExVal {
-                        val: IMExVal::Single(9),
-                        quantifier: Quantifier::Infinite,
-                    },
-                    QuantifiedIMExVal {
-                        val: IMExVal::Single(1),
-                        quantifier: Quantifier::Finite(1),
-                    },
+                    QuantifiedIMExVal::from(IMExVal::Single(1), Quantifier::Finite(1),),
+                    QuantifiedIMExVal::from(IMExVal::Single(3), Quantifier::Finite(3),),
+                    QuantifiedIMExVal::from(IMExVal::Single(9), Quantifier::Infinite,),
+                    QuantifiedIMExVal::from(IMExVal::Single(1), Quantifier::Finite(1),),
                 ]
                 .into_iter(),
             )
@@ -103,66 +102,60 @@ mod tests {
             i,
             IMEx(
                 vec![
-                    QuantifiedIMExVal {
-                        val: IMExVal::Single(1),
-                        quantifier: Quantifier::Finite(1),
-                    },
-                    QuantifiedIMExVal {
-                        val: IMExVal::Group(IMEx(
-                            vec![QuantifiedIMExVal {
-                                val: IMExVal::Single(1),
-                                quantifier: Quantifier::Finite(1),
-                            }]
+                    QuantifiedIMExVal::from(IMExVal::Single(1), Quantifier::Finite(1),),
+                    QuantifiedIMExVal::from(
+                        IMExVal::Group(IMEx(
+                            vec![QuantifiedIMExVal::from(
+                                IMExVal::Single(1),
+                                Quantifier::Finite(1),
+                            )]
                             .into_iter()
                         )),
-                        quantifier: Quantifier::Finite(1),
-                    },
-                    QuantifiedIMExVal {
-                        val: IMExVal::Group(IMEx(
-                            vec![QuantifiedIMExVal {
-                                val: IMExVal::Single(9),
-                                quantifier: Quantifier::Finite(1),
-                            }]
+                        Quantifier::Finite(1),
+                    ),
+                    QuantifiedIMExVal::from(
+                        IMExVal::Group(IMEx(
+                            vec![QuantifiedIMExVal::from(
+                                IMExVal::Single(9),
+                                Quantifier::Finite(1),
+                            )]
                             .into_iter()
                         )),
-                        quantifier: Quantifier::Infinite,
-                    },
-                    QuantifiedIMExVal {
-                        val: IMExVal::Group(IMEx(
-                            vec![QuantifiedIMExVal {
-                                val: IMExVal::Single(4),
-                                quantifier: Quantifier::Finite(1),
-                            }]
+                        Quantifier::Infinite,
+                    ),
+                    QuantifiedIMExVal::from(
+                        IMExVal::Group(IMEx(
+                            vec![QuantifiedIMExVal::from(
+                                IMExVal::Single(4),
+                                Quantifier::Finite(1),
+                            )]
                             .into_iter()
                         )),
-                        quantifier: Quantifier::Finite(45),
-                    },
-                    QuantifiedIMExVal {
-                        val: IMExVal::Group(IMEx(
+                        Quantifier::Finite(45),
+                    ),
+                    QuantifiedIMExVal::from(
+                        IMExVal::Group(IMEx(
                             vec![
-                                QuantifiedIMExVal {
-                                    val: IMExVal::Single(1),
-                                    quantifier: Quantifier::Finite(1),
-                                },
-                                QuantifiedIMExVal {
-                                    val: IMExVal::Group(IMEx(
-                                        vec![QuantifiedIMExVal {
-                                            val: IMExVal::Single(1),
-                                            quantifier: Quantifier::Finite(1),
-                                        }]
+                                QuantifiedIMExVal::from(IMExVal::Single(1), Quantifier::Finite(1),),
+                                QuantifiedIMExVal::from(
+                                    IMExVal::Group(IMEx(
+                                        vec![QuantifiedIMExVal::from(
+                                            IMExVal::Single(1),
+                                            Quantifier::Finite(1),
+                                        )]
                                         .into_iter()
                                     )),
-                                    quantifier: Quantifier::Finite(1),
-                                }
+                                    Quantifier::Finite(1),
+                                )
                             ]
                             .into_iter()
                         )),
-                        quantifier: Quantifier::Finite(1),
-                    },
-                    QuantifiedIMExVal {
-                        val: IMExVal::Group(IMEx(vec![].into_iter())),
-                        quantifier: Quantifier::Finite(1),
-                    }
+                        Quantifier::Finite(1),
+                    ),
+                    QuantifiedIMExVal::from(
+                        IMExVal::Group(IMEx(vec![].into_iter())),
+                        Quantifier::Finite(1),
+                    )
                 ]
                 .into_iter()
             )

@@ -52,7 +52,7 @@ fn parse_imex_val(input: &str) -> IResult<&str, IMExVal> {
 fn parse_quantified_imex_val(input: &str) -> IResult<&str, QuantifiedIMExVal> {
     let (input, val) = parse_imex_val(input)?;
     let (input, quantifier) = parse_quantifier(input)?;
-    Ok((input, QuantifiedIMExVal { val, quantifier }))
+    Ok((input, QuantifiedIMExVal::from(val, quantifier)))
 }
 
 fn parse_inner_imex(input: &str) -> IResult<&str, IMEx> {
