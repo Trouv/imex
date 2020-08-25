@@ -1,5 +1,5 @@
 use crate::expression::{imex::IMExIterator, IMEx};
-use std::{cell::RefCell, io::Result, rc::Rc, vec::IntoIter};
+use std::io::Result;
 
 /// An iterator that lazily merges other iterators using an
 /// [`IMEx`](../expression/imex/struct.IMEx.html). The result of using the merge functions defined

@@ -35,7 +35,9 @@ fn parse_single_imex_val(input: &str) -> IResult<&str, IMExVal> {
     let (input, x) = one_of("0123456789")(input)?;
     Ok((
         input,
-        IMExVal::Single(x.to_digit(10).expect("Expected value to be a digit") as usize),
+        IMExVal::Single(Some(
+            x.to_digit(10).expect("Expected value to be a digit") as usize
+        )),
     ))
 }
 
