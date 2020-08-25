@@ -57,7 +57,7 @@ fn parse_quantified_imex_val(input: &str) -> IResult<&str, QuantifiedIMExVal> {
 
 fn parse_inner_imex(input: &str) -> IResult<&str, IMEx> {
     let (input, imex) = many_till(parse_quantified_imex_val, char(')'))(input)?;
-    Ok((input, IMEx(imex.0)))
+    Ok((input, IMEx(imex.0.into_iter())))
 }
 
 /// Parser combinator for parsing an [`IMEx`](../imex/struct.IMEx.html), making use of the
@@ -86,5 +86,5 @@ fn parse_inner_imex(input: &str) -> IResult<&str, IMEx> {
 /// consider contributing to this project on [github](https://github.com/Trouv/imex).
 pub fn parse_imex(input: &str) -> IResult<&str, IMEx> {
     let (input, imex) = all_consuming(many0(parse_quantified_imex_val))(input)?;
-    Ok((input, IMEx(imex)))
+    Ok((input, IMEx(imex.into_iter())))
 }
