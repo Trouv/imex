@@ -1,43 +1,6 @@
 use crate::expression::{IMEx, IMExVal, QuantifiedIMExVal};
 use std::{cell::RefCell, io::Result, rc::Rc, vec::IntoIter};
 
-trait IMExIterator<T, I>
-where
-    T: Iterator<Item = I>,
-{
-    fn iterate(&mut self, iters: Vec<T>) -> Option<I>;
-}
-
-impl<T, I> IMExIterator<T, I> for IMExVal
-where
-    T: Iterator<Item = I>,
-{
-    fn iterate(&mut self, iters: Vec<T>) -> Option<I> {
-        match self {
-            IMExVal::Single(i) => None,
-            IMExVal::Group(i) => None,
-        }
-    }
-}
-
-impl<T, I> IMExIterator<T, I> for QuantifiedIMExVal
-where
-    T: Iterator<Item = I>,
-{
-    fn iterate(&mut self, iters: Vec<T>) -> Option<I> {
-        None
-    }
-}
-
-impl<T, I> IMExIterator<T, I> for IMEx
-where
-    T: Iterator<Item = I>,
-{
-    fn iterate(&mut self, iters: Vec<T>) -> Option<I> {
-        None
-    }
-}
-
 /// An iterator that lazily merges other iterators using an
 /// [`IMEx`](../expression/imex/struct.IMEx.html). The result of using the merge functions defined
 /// on the [`IMExMerges`](../merges/trait.IMExMerges.html) trait.

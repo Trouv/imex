@@ -19,16 +19,64 @@ pub enum IMExVal {
 pub struct QuantifiedIMExVal {
     pub val: IMExVal,
     pub quantifier: Quantifier,
-    current_val: Option<IMExVal>,
+    current_val: (IMExVal, bool),
 }
 
 impl QuantifiedIMExVal {
     pub fn from(val: IMExVal, quantifier: Quantifier) -> QuantifiedIMExVal {
         QuantifiedIMExVal {
+            current_val: (val.clone(), true),
             val,
             quantifier,
-            current_val: None,
         }
+    }
+}
+
+trait IMExIterator<T, I>
+where
+    T: Iterator<Item = I>,
+{
+    fn iterate(&mut self, iters: &mut Vec<T>) -> Option<I>;
+}
+
+impl<T, I> IMExIterator<T, I> for IMExVal
+where
+    T: Iterator<Item = I>,
+{
+    fn iterate(&mut self, iters: &mut Vec<T>) -> Option<I> {
+        match self {
+            IMExVal::Single(index) => match iters.get_mut(*index) {
+                Some(iter) => iter.next(),
+                None => None,
+            },
+            IMExVal::Group(imex) => imex.iterate(iters),
+        }
+    }
+}
+
+impl<T, I> IMExIterator<T, I> for QuantifiedIMExVal
+where
+    T: Iterator<Item = I>,
+{
+    fn iterate(&mut self, iters: &mut Vec<T>) -> Option<I> {
+        loop {
+            match self.current_val.0.iterate(iters) {
+                Some(res) => return Some(res),
+                None => match (self.quantifier.next(), self.current_val.1) {
+                    (Some(_), true) => self.current_val = (self.val.clone(), false),
+                    _ => return None,
+                },
+            };
+        }
+    }
+}
+
+impl<T, I> IMExIterator<T, I> for IMEx
+where
+    T: Iterator<Item = I>,
+{
+    fn iterate(&mut self, iters: &mut Vec<T>) -> Option<I> {
+        None
     }
 }
 
