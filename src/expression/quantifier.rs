@@ -1,3 +1,4 @@
+use super::ParserCombinator;
 use nom::{
     branch::alt,
     character::complete::{char, digit1},
@@ -12,21 +13,6 @@ use nom::{
 pub enum Quantifier {
     Infinite,
     Finite(usize),
-}
-
-fn parse_finite_quantifier(input: &str) -> IResult<&str, Quantifier> {
-    match opt(delimited(char('{'), digit1, char('}')))(input)? {
-        (input, Some(x)) => Ok((
-            input,
-            Quantifier::Finite(x.parse::<usize>().expect("Expected value to be a digit")),
-        )),
-        (input, None) => Ok((input, Quantifier::Finite(1))),
-    }
-}
-
-fn parse_infinite_quantifier(input: &str) -> IResult<&str, Quantifier> {
-    let (input, _) = char('*')(input)?;
-    Ok((input, Quantifier::Infinite))
 }
 
 impl Iterator for Quantifier {
@@ -44,7 +30,22 @@ impl Iterator for Quantifier {
     }
 }
 
-impl Quantifier {
+fn parse_finite_quantifier(input: &str) -> IResult<&str, Quantifier> {
+    match opt(delimited(char('{'), digit1, char('}')))(input)? {
+        (input, Some(x)) => Ok((
+            input,
+            Quantifier::Finite(x.parse::<usize>().expect("Expected value to be a digit")),
+        )),
+        (input, None) => Ok((input, Quantifier::Finite(1))),
+    }
+}
+
+fn parse_infinite_quantifier(input: &str) -> IResult<&str, Quantifier> {
+    let (input, _) = char('*')(input)?;
+    Ok((input, Quantifier::Infinite))
+}
+
+impl ParserCombinator for Quantifier {
     fn parse(input: &str) -> IResult<&str, Quantifier> {
         alt((parse_infinite_quantifier, parse_finite_quantifier))(input)
     }

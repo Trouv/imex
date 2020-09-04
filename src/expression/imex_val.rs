@@ -1,4 +1,4 @@
-use super::{IMEx, IMExpresser};
+use super::{IMEx, IMExIterator, ParserCombinator};
 use nom::{
     branch::alt,
     character::complete::{char, one_of},
@@ -15,22 +15,6 @@ pub enum IMExVal {
     Group(IMEx),
 }
 
-fn parse_single_imex_val(input: &str) -> IResult<&str, IMExVal> {
-    let (input, x) = one_of("0123456789")(input)?;
-    Ok((
-        input,
-        IMExVal::Single(once(
-            x.to_digit(10).expect("Expected value to be a digit") as usize
-        )),
-    ))
-}
-
-fn parse_group_imex_val(input: &str) -> IResult<&str, IMExVal> {
-    let (input, _) = char('(')(input)?;
-    let (input, imex) = parse_inner_imex(input)?;
-    Ok((input, IMExVal::Group(imex)))
-}
-
 impl PartialEq for IMExVal {
     fn eq(&self, other: &IMExVal) -> bool {
         match (self, other) {
@@ -41,7 +25,7 @@ impl PartialEq for IMExVal {
     }
 }
 
-impl<T, I> IMExpresser<T, I> for IMExVal
+impl<T, I> IMExIterator<T, I> for IMExVal
 where
     T: Iterator<Item = I>,
 {
@@ -57,7 +41,25 @@ where
             IMExVal::Group(imex) => imex.iterate(iters),
         }
     }
+}
 
+fn parse_single_imex_val(input: &str) -> IResult<&str, IMExVal> {
+    let (input, x) = one_of("0123456789")(input)?;
+    Ok((
+        input,
+        IMExVal::Single(once(
+            x.to_digit(10).expect("Expected value to be a digit") as usize
+        )),
+    ))
+}
+
+fn parse_group_imex_val(input: &str) -> IResult<&str, IMExVal> {
+    let (input, _) = char('(')(input)?;
+    let (input, imex) = IMEx::parse(input)?;
+    Ok((input, IMExVal::Group(imex)))
+}
+
+impl ParserCombinator for IMExVal {
     fn parse(input: &str) -> IResult<&str, IMExVal> {
         alt((parse_single_imex_val, parse_group_imex_val))(input)
     }

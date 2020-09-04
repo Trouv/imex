@@ -1,5 +1,10 @@
-use super::{IMExpresser, QuantifiedIMExVal};
-use nom::{combinator::all_consuming, IResult};
+use super::{IMExIterator, ParserCombinator, QuantifiedIMExVal};
+use nom::{
+    character::complete::char,
+    combinator::all_consuming,
+    multi::{many0, many_till},
+    IResult,
+};
 use std::{
     io::{Error, ErrorKind::InvalidInput, Result},
     vec::IntoIter,
@@ -32,7 +37,7 @@ impl IMEx {
     /// let imex = IMEx::from("01*(23){4}");
     /// ```
     pub fn from(imex_str: &str) -> Result<Self> {
-        match Self::parse(imex_str) {
+        match IMEx::parse_complete(imex_str) {
             Ok((_, imex)) => Ok(imex),
             Err(e) => Err(Error::new(InvalidInput, format!("{}", e))),
         }
@@ -54,28 +59,17 @@ impl IMEx {
     /// # Error
     /// Results in an error if the input string is not a valid IMEx.
     ///
-    /// # Example
-    /// ```
-    /// use imex::expression::{IMEx, parsers::parse_imex};
-    ///
-    /// let (remaining_input, parsed_imex) = parse_imex("12(34){56}")
-    ///     .expect("Invalid IMEx");
-    /// assert_eq!(
-    ///     parsed_imex,
-    ///     IMEx::from("12(34){56}").expect("Invalid IMEx")
-    /// );
-    /// ```
     /// Currently, this parser combinator expects to be "all consuming", which means it will fail if
     /// there is any input string remaining after parsing an IMEx. This could pose compatibility issues
     /// if you want to use this in your own set of parser combinators. If this is a use case for you,
     /// consider contributing to this project on [github](https://github.com/Trouv/imex).
     pub fn parse_complete(input: &str) -> IResult<&str, IMEx> {
-        let (input, imex) = all_consuming(many0(parse_quantified_imex_val))(input)?;
+        let (input, imex) = all_consuming(many0(QuantifiedIMExVal::parse))(input)?;
         Ok((input, IMEx::new(imex.into_iter())))
     }
 }
 
-impl<T, I> IMExpresser<T, I> for IMEx
+impl<T, I> IMExIterator<T, I> for IMEx
 where
     T: Iterator<Item = I>,
 {
@@ -93,8 +87,11 @@ where
             }
         }
     }
+}
+
+impl ParserCombinator for IMEx {
     fn parse(input: &str) -> IResult<&str, IMEx> {
-        let (input, imex) = many_till(parse_quantified_imex_val, char(')'))(input)?;
+        let (input, imex) = many_till(QuantifiedIMExVal::parse, char(')'))(input)?;
         Ok((input, IMEx::new(imex.0.into_iter())))
     }
 }
