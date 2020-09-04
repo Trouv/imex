@@ -1,115 +1,8 @@
-use super::{parsers::parse_imex, quantifier::Quantifier};
+use super::{parsers::parse_imex, IMExIterator, QuantifiedIMExVal};
 use std::{
     io::{Error, ErrorKind::InvalidInput, Result},
-    iter::Once,
     vec::IntoIter,
 };
-
-/// [`IMEx`]: ./struct.IMEx.html
-/// Represents a quantifiable value in a parsed [`IMEx`]. So, this is either a Single, which
-/// contains a digit for indexing iterators, or a Group, which contains an inner parsed [`IMEx`].
-#[derive(Debug, Clone)]
-pub enum IMExVal {
-    Single(Once<usize>),
-    Group(IMEx),
-}
-
-impl PartialEq for IMExVal {
-    fn eq(&self, other: &IMExVal) -> bool {
-        match (self, other) {
-            (IMExVal::Single(a), IMExVal::Single(b)) => a.clone().next() == b.clone().next(),
-            (IMExVal::Group(a), IMExVal::Group(b)) => a.eq(b),
-            _ => false,
-        }
-    }
-}
-
-/// An [`IMExVal`](./enum.IMExVal.html) that has been quantified, for use in a parsed
-/// [`IMEx`](./struct.IMEx.html).
-#[derive(PartialEq, Debug, Clone)]
-pub struct QuantifiedIMExVal {
-    pub val: IMExVal,
-    pub quantifier: Quantifier,
-    current_val: (Option<IMExVal>, bool),
-}
-
-impl QuantifiedIMExVal {
-    pub fn from(val: IMExVal, quantifier: Quantifier) -> QuantifiedIMExVal {
-        QuantifiedIMExVal {
-            current_val: (None, true),
-            val,
-            quantifier,
-        }
-    }
-}
-
-pub trait IMExIterator<T, I>
-where
-    T: Iterator<Item = I>,
-{
-    fn iterate(&mut self, iters: &mut Vec<T>) -> Option<I>;
-}
-
-impl<T, I> IMExIterator<T, I> for IMExVal
-where
-    T: Iterator<Item = I>,
-{
-    fn iterate(&mut self, iters: &mut Vec<T>) -> Option<I> {
-        match self {
-            IMExVal::Single(once) => match once.next() {
-                Some(index) => match iters.get_mut(index) {
-                    Some(iter) => iter.next(),
-                    None => None,
-                },
-                None => None,
-            },
-            IMExVal::Group(imex) => imex.iterate(iters),
-        }
-    }
-}
-
-impl<T, I> IMExIterator<T, I> for QuantifiedIMExVal
-where
-    T: Iterator<Item = I>,
-{
-    fn iterate(&mut self, iters: &mut Vec<T>) -> Option<I> {
-        loop {
-            match &mut self.current_val.0 {
-                Some(val) => match val.iterate(iters) {
-                    Some(res) => {
-                        self.current_val.1 = true;
-                        return Some(res);
-                    }
-                    None => self.current_val.0 = None,
-                },
-                None => match (self.quantifier.next(), self.current_val.1) {
-                    (Some(_), true) => self.current_val = (Some(self.val.clone()), false),
-                    _ => return None,
-                },
-            }
-        }
-    }
-}
-
-impl<T, I> IMExIterator<T, I> for IMEx
-where
-    T: Iterator<Item = I>,
-{
-    fn iterate(&mut self, iters: &mut Vec<T>) -> Option<I> {
-        loop {
-            match &mut self.current_val {
-                Some(val) => match val.iterate(iters) {
-                    Some(res) => return Some(res),
-                    None => self.current_val = None,
-                },
-                None => match self.vals.next() {
-                    Some(val) => self.current_val = Some(Box::new(val)),
-                    None => return None,
-                },
-            }
-        }
-    }
-}
 
 /// A single-element tuple-struct representing a parsed [`IMEx`](./struct.IMEx.html). Used by
 /// [`IMExIter`](../../merges/trait.IMExMerges.html) to perform lazy merging.
@@ -152,8 +45,29 @@ impl IMEx {
     }
 }
 
+impl<T, I> IMExIterator<T, I> for IMEx
+where
+    T: Iterator<Item = I>,
+{
+    fn iterate(&mut self, iters: &mut Vec<T>) -> Option<I> {
+        loop {
+            match &mut self.current_val {
+                Some(val) => match val.iterate(iters) {
+                    Some(res) => return Some(res),
+                    None => self.current_val = None,
+                },
+                None => match self.vals.next() {
+                    Some(val) => self.current_val = Some(Box::new(val)),
+                    None => return None,
+                },
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use super::super::{IMExVal, Quantifier};
     use super::*;
     use std::iter::once;
 

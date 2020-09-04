@@ -1,7 +1,4 @@
-use super::{
-    imex::{IMEx, IMExVal, QuantifiedIMExVal},
-    quantifier::Quantifier,
-};
+use super::{IMEx, IMExVal, QuantifiedIMExVal, Quantifier};
 use nom::{
     branch::alt,
     character::complete::{char, digit1, one_of},

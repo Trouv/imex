@@ -1,4 +1,4 @@
-use crate::expression::{imex::IMExIterator, IMEx};
+use crate::expression::{IMEx, IMExIterator};
 use std::io::Result;
 
 /// An iterator that lazily merges other iterators using an
