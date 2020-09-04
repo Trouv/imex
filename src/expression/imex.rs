@@ -1,4 +1,5 @@
-use super::{parsers::parse_imex, IMExIterator, QuantifiedIMExVal};
+use super::{IMExpresser, QuantifiedIMExVal};
+use nom::{combinator::all_consuming, IResult};
 use std::{
     io::{Error, ErrorKind::InvalidInput, Result},
     vec::IntoIter,
@@ -31,7 +32,7 @@ impl IMEx {
     /// let imex = IMEx::from("01*(23){4}");
     /// ```
     pub fn from(imex_str: &str) -> Result<Self> {
-        match parse_imex(imex_str) {
+        match Self::parse(imex_str) {
             Ok((_, imex)) => Ok(imex),
             Err(e) => Err(Error::new(InvalidInput, format!("{}", e))),
         }
@@ -43,9 +44,38 @@ impl IMEx {
             current_val: None,
         }
     }
+
+    /// Parser combinator for parsing an [`IMEx`](../imex/struct.IMEx.html), making use of the
+    /// [`nom`](https://docs.rs/nom/6.0.0-alpha1/nom/index.html) library. Unless you're building your
+    /// own parser that incorporates IMExes using parser combinators, you may prefer to use
+    /// [`IMEx::from`](../imex/struct.IMEx.html#method.from), which uses this function but loses the
+    /// parser combinator details.
+    ///
+    /// # Error
+    /// Results in an error if the input string is not a valid IMEx.
+    ///
+    /// # Example
+    /// ```
+    /// use imex::expression::{IMEx, parsers::parse_imex};
+    ///
+    /// let (remaining_input, parsed_imex) = parse_imex("12(34){56}")
+    ///     .expect("Invalid IMEx");
+    /// assert_eq!(
+    ///     parsed_imex,
+    ///     IMEx::from("12(34){56}").expect("Invalid IMEx")
+    /// );
+    /// ```
+    /// Currently, this parser combinator expects to be "all consuming", which means it will fail if
+    /// there is any input string remaining after parsing an IMEx. This could pose compatibility issues
+    /// if you want to use this in your own set of parser combinators. If this is a use case for you,
+    /// consider contributing to this project on [github](https://github.com/Trouv/imex).
+    pub fn parse_complete(input: &str) -> IResult<&str, IMEx> {
+        let (input, imex) = all_consuming(many0(parse_quantified_imex_val))(input)?;
+        Ok((input, IMEx::new(imex.into_iter())))
+    }
 }
 
-impl<T, I> IMExIterator<T, I> for IMEx
+impl<T, I> IMExpresser<T, I> for IMEx
 where
     T: Iterator<Item = I>,
 {
@@ -62,6 +92,10 @@ where
                 },
             }
         }
+    }
+    fn parse(input: &str) -> IResult<&str, IMEx> {
+        let (input, imex) = many_till(parse_quantified_imex_val, char(')'))(input)?;
+        Ok((input, IMEx::new(imex.0.into_iter())))
     }
 }
 

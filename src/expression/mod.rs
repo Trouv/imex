@@ -10,9 +10,14 @@ pub use self::{
     imex::IMEx, imex_val::IMExVal, quantified_imex_val::QuantifiedIMExVal, quantifier::Quantifier,
 };
 
-pub trait IMExIterator<T, I>
+use nom::IResult;
+pub trait IMExpresser<T, I>
 where
     T: Iterator<Item = I>,
 {
     fn iterate(&mut self, iters: &mut Vec<T>) -> Option<I>;
+
+    fn parse(input: &str) -> IResult<&str, Self>
+    where
+        Self: std::marker::Sized;
 }

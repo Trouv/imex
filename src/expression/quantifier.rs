@@ -1,9 +1,32 @@
+use nom::{
+    branch::alt,
+    character::complete::{char, digit1},
+    combinator::opt,
+    sequence::delimited,
+    IResult,
+};
+
 /// Represents a quantifier in a parsed [`IMEx`](../imex/struct.IMEx.html). Either Finite (`{x}`), in
 /// which case a range is contained, or Infinite (`*`).
 #[derive(PartialEq, Debug, Clone)]
 pub enum Quantifier {
     Infinite,
     Finite(usize),
+}
+
+fn parse_finite_quantifier(input: &str) -> IResult<&str, Quantifier> {
+    match opt(delimited(char('{'), digit1, char('}')))(input)? {
+        (input, Some(x)) => Ok((
+            input,
+            Quantifier::Finite(x.parse::<usize>().expect("Expected value to be a digit")),
+        )),
+        (input, None) => Ok((input, Quantifier::Finite(1))),
+    }
+}
+
+fn parse_infinite_quantifier(input: &str) -> IResult<&str, Quantifier> {
+    let (input, _) = char('*')(input)?;
+    Ok((input, Quantifier::Infinite))
 }
 
 impl Iterator for Quantifier {
@@ -18,6 +41,12 @@ impl Iterator for Quantifier {
             }
             _ => Some(()),
         }
+    }
+}
+
+impl Quantifier {
+    fn parse(input: &str) -> IResult<&str, Quantifier> {
+        alt((parse_infinite_quantifier, parse_finite_quantifier))(input)
     }
 }
 

@@ -1,4 +1,5 @@
-use super::{IMExIterator, IMExVal, Quantifier};
+use super::{IMExVal, IMExpresser, Quantifier};
+use nom::IResult;
 
 /// An [`IMExVal`](./enum.IMExVal.html) that has been quantified, for use in a parsed
 /// [`IMEx`](./struct.IMEx.html).
@@ -19,7 +20,7 @@ impl QuantifiedIMExVal {
     }
 }
 
-impl<T, I> IMExIterator<T, I> for QuantifiedIMExVal
+impl<T, I> IMExpresser<T, I> for QuantifiedIMExVal
 where
     T: Iterator<Item = I>,
 {
@@ -39,5 +40,11 @@ where
                 },
             }
         }
+    }
+
+    fn parse(input: &str) -> IResult<&str, QuantifiedIMExVal> {
+        let (input, val) = parse_imex_val(input)?;
+        let (input, quantifier) = parse_quantifier(input)?;
+        Ok((input, QuantifiedIMExVal::from(val, quantifier)))
     }
 }
