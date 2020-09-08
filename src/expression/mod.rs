@@ -4,21 +4,10 @@ mod imex;
 mod imex_val;
 mod quantified_imex_val;
 mod quantifier;
+mod utils;
 
 pub use self::{
     imex::IMEx, imex_val::IMExVal, quantified_imex_val::QuantifiedIMExVal, quantifier::Quantifier,
 };
-
-pub trait IMExIterator<T, I>
-where
-    T: Iterator<Item = I>,
-{
-    fn iterate(&mut self, iters: &mut Vec<T>) -> Option<I>;
-}
-
-use nom::IResult;
-trait ParserCombinator {
-    fn parse(input: &str) -> IResult<&str, Self>
-    where
-        Self: std::marker::Sized;
-}
+pub use utils::IMExIterator;
+use utils::ParserCombinator;
