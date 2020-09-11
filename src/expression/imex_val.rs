@@ -26,9 +26,9 @@ impl PartialEq for IMExVal {
 }
 
 impl IMExIterator for IMExVal {
-    fn iterate<T>(&mut self, iters: &mut Vec<T>) -> Option<Self::Item>
+    fn iterate<T, I>(&mut self, iters: &mut Vec<T>) -> Option<I>
     where
-        T: Iterator<Item = Self::Item>,
+        T: Iterator<Item = I>,
     {
         match self {
             IMExVal::Single(once) => match once.next() {
