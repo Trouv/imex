@@ -69,11 +69,11 @@ impl IMEx {
     }
 }
 
-impl<T, I> IMExIterator<T, I> for IMEx
-where
-    T: Iterator<Item = I>,
-{
-    fn iterate(&mut self, iters: &mut Vec<T>) -> Option<I> {
+impl IMExIterator for IMEx {
+    fn iterate<T>(&mut self, iters: &mut Vec<T>) -> Option<Self::Item>
+    where
+        T: Iterator<Item = Self::Item>,
+    {
         loop {
             match &mut self.current_val {
                 Some(val) => match val.iterate(iters) {

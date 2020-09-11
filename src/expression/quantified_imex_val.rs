@@ -20,11 +20,11 @@ impl QuantifiedIMExVal {
     }
 }
 
-impl<T, I> IMExIterator<T, I> for QuantifiedIMExVal
-where
-    T: Iterator<Item = I>,
-{
-    fn iterate(&mut self, iters: &mut Vec<T>) -> Option<I> {
+impl IMExIterator for QuantifiedIMExVal {
+    fn iterate<T>(&mut self, iters: &mut Vec<T>) -> Option<Self::Item>
+    where
+        T: Iterator<Item = Self::Item>,
+    {
         loop {
             match &mut self.current_val.0 {
                 Some(val) => match val.iterate(iters) {

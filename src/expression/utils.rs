@@ -1,8 +1,16 @@
-pub trait IMExIterator<T, I>
+pub trait IMExIterator {
+    type Item;
+    fn iterate<T>(&mut self, iters: &mut Vec<T>) -> Option<Self::Item>
+    where
+        T: Iterator<Item = Self::Item>;
+}
+
+pub struct IMExIterCounter<I>
 where
-    T: Iterator<Item = I>,
+    I: IMExIterator,
 {
-    fn iterate(&mut self, iters: &mut Vec<T>) -> Option<I>;
+    imex_iter: I,
+    counter: u32,
 }
 
 use nom::IResult;
