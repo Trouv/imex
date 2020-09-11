@@ -10,4 +10,4 @@ pub use self::{
     imex::IMEx, imex_val::IMExVal, quantified_imex_val::QuantifiedIMExVal, quantifier::Quantifier,
 };
 pub use utils::IMExIterator;
-use utils::ParserCombinator;
+use utils::{IMExIterCounter, ParserCombinator};
