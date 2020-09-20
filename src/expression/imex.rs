@@ -6,6 +6,7 @@ use nom::{
     IResult,
 };
 use std::{
+    convert::TryFrom,
     io::{Error, ErrorKind::InvalidInput, Result},
     vec::IntoIter,
 };
@@ -26,23 +27,6 @@ impl PartialEq for IMEx {
 }
 
 impl IMEx {
-    /// Parse an [`IMEx`](./struct.IMEx.html) from a string.
-    ///
-    /// # Error
-    /// Results in an error if the IMEx is invalid.
-    ///
-    /// # Example
-    /// ```
-    /// use imex::expression::IMEx;
-    /// let imex = IMEx::from("01*(23){4}");
-    /// ```
-    pub fn from(imex_str: &str) -> Result<Self> {
-        match IMEx::parse_complete(imex_str) {
-            Ok((_, imex)) => Ok(imex),
-            Err(e) => Err(Error::new(InvalidInput, format!("{}", e))),
-        }
-    }
-
     pub fn new(vals: IntoIter<QuantifiedIMExVal>) -> IMEx {
         IMEx {
             vals,
@@ -53,7 +37,7 @@ impl IMEx {
     /// Parser combinator for parsing an [`IMEx`](../imex/struct.IMEx.html), making use of the
     /// [`nom`](https://docs.rs/nom/6.0.0-alpha1/nom/index.html) library. Unless you're building your
     /// own parser that incorporates IMExes using parser combinators, you may prefer to use
-    /// [`IMEx::from`](../imex/struct.IMEx.html#method.from), which uses this function but loses the
+    /// [`IMEx::try_from`](../imex/struct.IMEx.html#method.from), which uses this function but loses the
     /// parser combinator details.
     ///
     /// # Error
@@ -66,6 +50,28 @@ impl IMEx {
     pub fn parse_complete(input: &str) -> IResult<&str, IMEx> {
         let (input, imex) = all_consuming(many0(QuantifiedIMExVal::parse))(input)?;
         Ok((input, IMEx::new(imex.into_iter())))
+    }
+}
+
+impl TryFrom<&str> for IMEx {
+    type Error = Error;
+
+    /// Parse an [`IMEx`](./struct.IMEx.html) from a string.
+    ///
+    /// # Error
+    /// Results in an error if the IMEx is invalid.
+    ///
+    /// # Example
+    /// ```
+    /// use imex::expression::IMEx;
+    /// use std::convert::TryFrom;
+    /// let imex = IMEx::try_from("01*(23){4}");
+    /// ```
+    fn try_from(imex_str: &str) -> Result<Self> {
+        match IMEx::parse_complete(imex_str) {
+            Ok((_, imex)) => Ok(imex),
+            Err(e) => Err(Error::new(InvalidInput, format!("{}", e))),
+        }
     }
 }
 
@@ -104,7 +110,7 @@ mod tests {
 
     #[test]
     fn empty_string_gives_empty_group_imex() -> Result<()> {
-        let i = IMEx::from("")?;
+        let i = IMEx::try_from("")?;
 
         assert_eq!(i, IMEx::new(vec![].into_iter()));
         Ok(())
@@ -112,7 +118,7 @@ mod tests {
 
     #[test]
     fn repeats_gives_repeating_imex() -> Result<()> {
-        let i = IMEx::from("13{3}9*1")?;
+        let i = IMEx::try_from("13{3}9*1")?;
 
         assert_eq!(
             i,
@@ -131,7 +137,7 @@ mod tests {
 
     #[test]
     fn parens_gives_group_imex() -> Result<()> {
-        let i = IMEx::from("1(1)(9)*(4){45}(1(1))()")?;
+        let i = IMEx::try_from("1(1)(9)*(4){45}(1(1))()")?;
 
         assert_eq!(
             i,
@@ -203,59 +209,59 @@ mod tests {
 
     #[test]
     fn bad_chars_fails() {
-        IMEx::from("0O0").unwrap_err();
+        IMEx::try_from("0O0").unwrap_err();
 
-        IMEx::from("^[0]+$").unwrap_err();
+        IMEx::try_from("^[0]+$").unwrap_err();
 
-        IMEx::from("123*4{5}(x)*").unwrap_err();
+        IMEx::try_from("123*4{5}(x)*").unwrap_err();
     }
 
     #[test]
     fn too_many_closed_parens_fails() {
-        IMEx::from("0(1)2)3(4)5").unwrap_err();
+        IMEx::try_from("0(1)2)3(4)5").unwrap_err();
 
-        IMEx::from("0{1}2}3{4}5").unwrap_err();
+        IMEx::try_from("0{1}2}3{4}5").unwrap_err();
 
-        IMEx::from("0(1)2(3))").unwrap_err();
+        IMEx::try_from("0(1)2(3))").unwrap_err();
     }
 
     #[test]
     fn too_many_open_parens_fails() {
-        IMEx::from("0(1)2(3(4)5").unwrap_err();
+        IMEx::try_from("0(1)2(3(4)5").unwrap_err();
 
-        IMEx::from("0{1}2{3{4}5").unwrap_err();
+        IMEx::try_from("0{1}2{3{4}5").unwrap_err();
 
-        IMEx::from("0{1}23{4}5{6").unwrap_err();
+        IMEx::try_from("0{1}23{4}5{6").unwrap_err();
 
-        IMEx::from("((0)1(2)3").unwrap_err();
+        IMEx::try_from("((0)1(2)3").unwrap_err();
     }
 
     #[test]
     fn mismatched_parens_fails() {
-        IMEx::from(")(").unwrap_err();
+        IMEx::try_from(")(").unwrap_err();
 
-        IMEx::from("(3{)}").unwrap_err();
+        IMEx::try_from("(3{)}").unwrap_err();
     }
 
     #[test]
     fn bad_repeat_targets_fails() {
-        IMEx::from("(*4)").unwrap_err();
+        IMEx::try_from("(*4)").unwrap_err();
 
-        IMEx::from("({6}6)").unwrap_err();
+        IMEx::try_from("({6}6)").unwrap_err();
 
-        IMEx::from("*2").unwrap_err();
+        IMEx::try_from("*2").unwrap_err();
 
-        IMEx::from("{4}4").unwrap_err();
+        IMEx::try_from("{4}4").unwrap_err();
 
-        IMEx::from("5{*5}").unwrap_err();
+        IMEx::try_from("5{*5}").unwrap_err();
     }
 
     #[test]
     fn bad_repeat_bracket_contents_fails() {
-        IMEx::from("5{5*}").unwrap_err();
+        IMEx::try_from("5{5*}").unwrap_err();
 
-        IMEx::from("6{(6)}").unwrap_err();
+        IMEx::try_from("6{(6)}").unwrap_err();
 
-        IMEx::from("7{7{7}}").unwrap_err();
+        IMEx::try_from("7{7{7}}").unwrap_err();
     }
 }

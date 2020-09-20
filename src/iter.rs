@@ -1,4 +1,5 @@
 use crate::expression::{IMEx, IMExIterator};
+use std::convert::TryFrom;
 use std::io::Result;
 
 /// An iterator that lazily merges other iterators using an
@@ -36,7 +37,7 @@ where
     pub fn from(iters: Vec<T>, imex: &str) -> Result<Self> {
         Ok(IMExIter::<T, I> {
             iters,
-            imex: IMEx::from(imex)?,
+            imex: IMEx::try_from(imex)?,
         })
     }
 }
