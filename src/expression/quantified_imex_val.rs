@@ -5,8 +5,8 @@ use nom::IResult;
 /// [`IMEx`](./struct.IMEx.html).
 #[derive(PartialEq, Debug, Clone)]
 pub struct QuantifiedIMExVal {
-    pub val: IMExVal,
-    pub quantifier: Quantifier,
+    val: IMExVal,
+    quantifier: Quantifier,
     current_val: Option<IMExIterCounter<IMExVal>>,
 }
 
@@ -29,6 +29,14 @@ impl QuantifiedIMExVal {
             }
             None => false,
         }
+    }
+
+    pub fn get_val(&self) -> &IMExVal {
+        &self.val
+    }
+
+    pub fn get_quantifier(&self) -> &Quantifier {
+        &self.quantifier
     }
 }
 
@@ -62,5 +70,60 @@ impl ParserCombinator for QuantifiedIMExVal {
         let (input, val) = IMExVal::parse(input)?;
         let (input, quantifier) = Quantifier::parse(input)?;
         Ok((input, QuantifiedIMExVal::new(val, quantifier)))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::super::IMEx;
+    use super::*;
+    use std::{convert::TryFrom, io::Result, iter::once};
+
+    #[test]
+    fn iterating_new_qimex_val_with_zero_quantifier_gives_none() {
+        let mut qimex_val = QuantifiedIMExVal::new(IMExVal::Single(once(1)), Quantifier::Finite(0));
+        let mut iters = vec!["123".chars(), "abc".chars()];
+
+        assert_eq!(qimex_val.iterate(&mut iters), None);
+    }
+
+    #[test]
+    fn iterating_qimex_val_with_three_quantifier_repeats_thrice() {
+        let mut qimex_val = QuantifiedIMExVal::new(IMExVal::Single(once(1)), Quantifier::Finite(3));
+        let mut iters = vec!["123".chars(), "abcde".chars()];
+
+        assert_eq!(qimex_val.iterate(&mut iters), Some('a'));
+        assert_eq!(qimex_val.iterate(&mut iters), Some('b'));
+        assert_eq!(qimex_val.iterate(&mut iters), Some('c'));
+        assert_eq!(qimex_val.iterate(&mut iters), None);
+    }
+
+    #[test]
+    fn exhausting_imex_val_before_repeats_copmlete_gives_none() {
+        let mut qimex_val = QuantifiedIMExVal::new(IMExVal::Single(once(1)), Quantifier::Finite(5));
+        let mut iters = vec!["123".chars(), "abc".chars()];
+
+        assert_eq!(qimex_val.iterate(&mut iters), Some('a'));
+        assert_eq!(qimex_val.iterate(&mut iters), Some('b'));
+        assert_eq!(qimex_val.iterate(&mut iters), Some('c'));
+        assert_eq!(qimex_val.iterate(&mut iters), None);
+    }
+
+    #[test]
+    fn group_imex_val_completes_inner_iteration_first() -> Result<()> {
+        let mut qimex_val = QuantifiedIMExVal::new(
+            IMExVal::Group(IMEx::try_from("01*")?),
+            Quantifier::Finite(2),
+        );
+        let mut iters = vec!["123".chars(), "abc".chars()];
+
+        assert_eq!(qimex_val.iterate(&mut iters), Some('1'));
+        assert_eq!(qimex_val.iterate(&mut iters), Some('a'));
+        assert_eq!(qimex_val.iterate(&mut iters), Some('b'));
+        assert_eq!(qimex_val.iterate(&mut iters), Some('c'));
+        assert_eq!(qimex_val.iterate(&mut iters), Some('2'));
+        assert_eq!(qimex_val.iterate(&mut iters), None);
+
+        Ok(())
     }
 }
