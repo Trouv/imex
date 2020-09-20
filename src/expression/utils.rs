@@ -44,3 +44,48 @@ pub trait ParserCombinator {
     where
         Self: std::marker::Sized;
 }
+
+#[cfg(test)]
+mod iter_counter_tests {
+    use super::super::IMEx;
+    use super::*;
+    use std::{convert::TryFrom, io::Result};
+
+    #[test]
+    fn iter_counter_counts_iterations() -> Result<()> {
+        let mut iter_counter = IMExIterCounter::new(IMEx::try_from("0*")?);
+        let mut iters = vec!["123".chars()];
+
+        assert_eq!(iter_counter.count(), 0);
+
+        iter_counter.iterate(&mut iters);
+        assert_eq!(iter_counter.count(), 1);
+
+        iter_counter.iterate(&mut iters);
+        assert_eq!(iter_counter.count(), 2);
+
+        iter_counter.iterate(&mut iters);
+        assert_eq!(iter_counter.count(), 3);
+
+        iter_counter.iterate(&mut iters);
+        assert_eq!(iter_counter.count(), 3);
+
+        Ok(())
+    }
+
+    #[test]
+    fn iter_counter_wont_count_past_zero_on_empty_imex() -> Result<()> {
+        let mut iter_counter = IMExIterCounter::new(IMEx::try_from("")?);
+        let mut iters = vec!["123".chars()];
+
+        assert_eq!(iter_counter.count(), 0);
+
+        iter_counter.iterate(&mut iters);
+        assert_eq!(iter_counter.count(), 0);
+
+        iter_counter.iterate(&mut iters);
+        assert_eq!(iter_counter.count(), 0);
+
+        Ok(())
+    }
+}
