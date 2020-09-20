@@ -64,3 +64,33 @@ impl ParserCombinator for IMExVal {
         alt((parse_single_imex_val, parse_group_imex_val))(input)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::super::IMEx;
+    use super::*;
+    use std::{convert::TryFrom, io::Result};
+
+    #[test]
+    fn single_iterates_once() {
+        let mut imex_val = IMExVal::Single(once(1));
+        let mut iters = vec!["123".chars(), "abc".chars()];
+
+        assert_eq!(imex_val.iterate(&mut iters), Some('a'));
+
+        assert_eq!(imex_val.iterate(&mut iters), None);
+    }
+
+    #[test]
+    fn group_iterates_over_imex() -> Result<()> {
+        let mut imex_val = IMExVal::Group(IMEx::try_from("01*")?);
+        let mut iters = vec!["123".chars(), "abc".chars()];
+
+        assert_eq!(imex_val.iterate(&mut iters), Some('1'));
+        assert_eq!(imex_val.iterate(&mut iters), Some('a'));
+        assert_eq!(imex_val.iterate(&mut iters), Some('b'));
+        assert_eq!(imex_val.iterate(&mut iters), Some('c'));
+        assert_eq!(imex_val.iterate(&mut iters), None);
+        Ok(())
+    }
+}
