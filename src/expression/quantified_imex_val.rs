@@ -11,7 +11,7 @@ pub struct QuantifiedIMExVal {
 }
 
 impl QuantifiedIMExVal {
-    pub fn from(val: IMExVal, quantifier: Quantifier) -> QuantifiedIMExVal {
+    pub fn new(val: IMExVal, quantifier: Quantifier) -> QuantifiedIMExVal {
         QuantifiedIMExVal {
             val,
             quantifier,
@@ -61,6 +61,6 @@ impl ParserCombinator for QuantifiedIMExVal {
     fn parse(input: &str) -> IResult<&str, QuantifiedIMExVal> {
         let (input, val) = IMExVal::parse(input)?;
         let (input, quantifier) = Quantifier::parse(input)?;
-        Ok((input, QuantifiedIMExVal::from(val, quantifier)))
+        Ok((input, QuantifiedIMExVal::new(val, quantifier)))
     }
 }

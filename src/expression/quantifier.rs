@@ -9,7 +9,7 @@ use nom::{
 
 /// Represents a quantifier in a parsed [`IMEx`](../imex/struct.IMEx.html). Either Finite (`{x}`), in
 /// which case a range is contained, or Infinite (`*`).
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone, Copy)]
 pub enum Quantifier {
     Infinite,
     Finite(usize),

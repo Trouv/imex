@@ -27,14 +27,14 @@ where
     /// ```
     /// use imex::IMExIter;
     ///
-    /// let imex_iter = IMExIter::from(vec!["1234".chars(), "abcde".chars()], "(001)*")
+    /// let imex_iter = IMExIter::new(vec!["1234".chars(), "abcde".chars()], "(001)*")
     ///     .expect("Invalid IMEx");
     /// let merged = imex_iter
     ///     .collect::<String>();
     ///
     /// assert_eq!(merged, "12a34bcde");
     /// ```
-    pub fn from(iters: Vec<T>, imex: &str) -> Result<Self> {
+    pub fn new(iters: Vec<T>, imex: &str) -> Result<Self> {
         Ok(IMExIter::<T, I> {
             iters,
             imex: IMEx::try_from(imex)?,
@@ -60,7 +60,7 @@ mod tests {
     #[test]
     fn non_repeating_imex_might_not_complete() -> Result<()> {
         let iters = vec!["00000".chars(), "11111".chars()];
-        let i = IMExIter::from(iters, "01(10){3}")?;
+        let i = IMExIter::new(iters, "01(10){3}")?;
 
         assert_eq!(i.collect::<String>(), "01101010");
 
@@ -70,7 +70,7 @@ mod tests {
     #[test]
     fn repeating_imex_repeats() -> Result<()> {
         let iters = vec!["00000000".chars(), "111111".chars()];
-        let i = IMExIter::from(iters, "0{3}1(01){5}")?;
+        let i = IMExIter::new(iters, "0{3}1(01){5}")?;
 
         assert_eq!(i.collect::<String>(), "00010101010101");
 
@@ -80,7 +80,7 @@ mod tests {
     #[test]
     fn completed_imex_exits_repeating() -> Result<()> {
         let iters = vec!["000".chars(), "111".chars(), "22222".chars()];
-        let i = IMExIter::from(iters, "0*(12)*")?;
+        let i = IMExIter::new(iters, "0*(12)*")?;
 
         assert_eq!(i.collect::<String>(), "00012121222");
 
@@ -90,7 +90,7 @@ mod tests {
     #[test]
     fn out_of_range_imex_skips() -> Result<()> {
         let iters = vec!["000".chars(), "111".chars()];
-        let i = IMExIter::from(iters, "0120")?;
+        let i = IMExIter::new(iters, "0120")?;
 
         assert_eq!(i.collect::<String>(), "010");
 
@@ -100,7 +100,7 @@ mod tests {
     #[test]
     fn empty_imex_gives_empty_merge() -> Result<()> {
         let iters = vec!["000".chars(), "111".chars()];
-        let i = IMExIter::from(iters, "")?;
+        let i = IMExIter::new(iters, "")?;
 
         assert_eq!(i.collect::<String>(), String::new());
 
@@ -110,7 +110,7 @@ mod tests {
     #[test]
     fn empty_iters_give_empty_merge() -> Result<()> {
         let iters = vec!["".chars(), "".chars(), "".chars()];
-        let i = IMExIter::from(iters, "0120")?;
+        let i = IMExIter::new(iters, "0120")?;
 
         assert_eq!(i.collect::<String>(), String::new());
 
@@ -120,7 +120,7 @@ mod tests {
     #[test]
     fn empty_iter_list_gives_empty_merge() -> Result<()> {
         let iters: Vec<std::str::Chars> = vec![];
-        let i = IMExIter::from(iters, "0120")?;
+        let i = IMExIter::new(iters, "0120")?;
 
         assert_eq!(i.collect::<String>(), String::new());
 

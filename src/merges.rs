@@ -111,6 +111,6 @@ where
     fn imex_merge_all(self, iters: &mut Vec<T>, imex: &str) -> Result<IMExIter<T, I>> {
         let mut total_iters = vec![self];
         total_iters.append(iters);
-        IMExIter::<T, I>::from(total_iters, imex)
+        IMExIter::<T, I>::new(total_iters, imex)
     }
 }
