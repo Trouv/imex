@@ -7,7 +7,7 @@ use nom::{
     IResult,
 };
 
-/// Represents a quantifier in a parsed [`IMEx`](../imex/struct.IMEx.html). Either Finite (`{x}`), in
+/// Represents a quantifier in a parsed [`IMEx`](./struct.IMEx.html). Either Finite (`{x}`), in
 /// which case a range is contained, or Infinite (`*`).
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum Quantifier {

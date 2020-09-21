@@ -9,6 +9,8 @@ use std::iter::{once, Once};
 /// [`IMEx`]: ./struct.IMEx.html
 /// Represents a quantifiable value in a parsed [`IMEx`]. So, this is either a Single, which
 /// contains a digit for indexing iterators, or a Group, which contains an inner parsed [`IMEx`].
+///
+/// The digit in a Single is wrapped in a Once from the standard library.
 #[derive(Debug, Clone)]
 pub enum IMExVal {
     Single(Once<usize>),

@@ -21,6 +21,8 @@ impl QuantifiedIMExVal {
 }
 
 impl QuantifiedIMExVal {
+    /// If self.quantifier isn't depleted, repeats self.val (clones it to self.current_val) and
+    /// returns true. Otherwise, returns false.
     fn repeat(&mut self) -> bool {
         match self.quantifier.next() {
             Some(_) => {
@@ -31,10 +33,12 @@ impl QuantifiedIMExVal {
         }
     }
 
+    /// Returns an immutable reference to self.val
     pub fn get_val(&self) -> &IMExVal {
         &self.val
     }
 
+    /// Returns an immutable reference to self.quantifier
     pub fn get_quantifier(&self) -> &Quantifier {
         &self.quantifier
     }
