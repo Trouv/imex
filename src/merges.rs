@@ -1,13 +1,13 @@
 use crate::IMExIter;
 use std::io::Result;
 
-/// Trait for merging iterators into an [`IMExIter`](../iter/struct.IMExIter.html)
+/// Trait for merging iterators into an [`IMExIter`](./struct.IMExIter.html)
 pub trait IMExMerges<T, I>
 where
     T: Iterator<Item = I>,
 {
     /// Define how self, a vector of iterators, and an IMEx string merge into an
-    /// [`IMExIter`](../iter/struct.IMExIter.html)
+    /// [`IMExIter`](./struct.IMExIter.html)
     ///
     /// In practice, this is used to merge more than two iterators with a custom IMEx.
     ///

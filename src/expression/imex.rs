@@ -15,7 +15,7 @@ use std::{
 };
 
 /// A single-element tuple-struct representing a parsed [`IMEx`](./struct.IMEx.html). Used by
-/// [`IMExIter`](../iter/struct.IMExIter.html) to perform lazy merging.
+/// [`IMExIter`](../struct.IMExIter.html) to perform lazy merging.
 #[derive(Debug, Clone)]
 pub struct IMEx {
     pub vals: IntoIter<QuantifiedIMExVal>,
