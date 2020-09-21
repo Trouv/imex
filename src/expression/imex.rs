@@ -1,4 +1,7 @@
-use super::{IMExIterator, ParserCombinator, QuantifiedIMExVal};
+use crate::{
+    expression::{ParserCombinator, QuantifiedIMExVal},
+    IMExIterator,
+};
 use nom::{
     character::complete::char,
     combinator::all_consuming,

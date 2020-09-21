@@ -1,4 +1,4 @@
-use super::ParserCombinator;
+use crate::expression::ParserCombinator;
 use nom::{
     branch::alt,
     character::complete::{char, digit1},

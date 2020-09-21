@@ -1,4 +1,4 @@
-use crate::iter::IMExIter;
+use crate::IMExIter;
 use std::io::Result;
 
 /// Trait for merging iterators into an [`IMExIter`](../iter/struct.IMExIter.html)

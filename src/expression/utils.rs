@@ -1,8 +1,4 @@
-pub trait IMExIterator {
-    fn iterate<T, I>(&mut self, iters: &mut Vec<T>) -> Option<I>
-    where
-        T: Iterator<Item = I>;
-}
+use crate::IMExIterator;
 
 #[derive(PartialEq, Debug, Clone)]
 pub struct IMExIterCounter<X: IMExIterator> {

@@ -1,4 +1,7 @@
-use super::{IMExIterCounter, IMExIterator, IMExVal, ParserCombinator, Quantifier};
+use crate::{
+    expression::{IMExIterCounter, IMExVal, ParserCombinator, Quantifier},
+    IMExIterator,
+};
 use nom::IResult;
 
 /// An [`IMExVal`](./enum.IMExVal.html) that has been quantified, for use in a parsed

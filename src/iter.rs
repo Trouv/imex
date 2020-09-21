@@ -1,6 +1,12 @@
-use crate::expression::{IMEx, IMExIterator};
+use crate::expression::IMEx;
 use std::convert::TryFrom;
 use std::io::Result;
+
+pub trait IMExIterator {
+    fn iterate<T, I>(&mut self, iters: &mut Vec<T>) -> Option<I>
+    where
+        T: Iterator<Item = I>;
+}
 
 /// An iterator that lazily merges other iterators using an
 /// [`IMEx`](../expression/imex/struct.IMEx.html). The result of using the merge functions defined

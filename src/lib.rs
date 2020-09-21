@@ -47,8 +47,9 @@
 //!  * [`alt_merge`](merges/trait.IMExMerges.html#method.alt_merge)
 
 pub mod expression;
-pub mod iter;
-pub mod merges;
+mod iter;
+mod merges;
 
 pub use iter::IMExIter;
+use iter::IMExIterator;
 pub use merges::IMExMerges;

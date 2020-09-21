@@ -1,4 +1,7 @@
-use super::{IMEx, IMExIterator, ParserCombinator};
+use crate::{
+    expression::{IMEx, ParserCombinator},
+    IMExIterator,
+};
 use nom::{
     branch::alt,
     character::complete::{char, one_of},
