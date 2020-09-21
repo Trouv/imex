@@ -2,7 +2,12 @@ use crate::expression::IMEx;
 use std::convert::TryFrom;
 use std::io::Result;
 
+/// Similar to the standard Iterator, except its iteration function requires an extra argument.
+///
+/// Used on many of the objects in the expression module.
 pub trait IMExIterator {
+    /// Defines how the IMExIterator iterates and returns a result using the iters that an IMEx is
+    /// supposed to merge.
     fn iterate<T, I>(&mut self, iters: &mut Vec<T>) -> Option<I>
     where
         T: Iterator<Item = I>;

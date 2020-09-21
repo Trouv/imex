@@ -1,5 +1,4 @@
-//! This module contains objects for representing an IMEx, as well as functions for parsing IMExes
-//! from strings. There is no logic for performing merges here, just data.
+//! This module contains objects for representing an IMEx.
 mod imex;
 mod imex_val;
 mod quantified_imex_val;

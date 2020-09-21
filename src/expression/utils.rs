@@ -1,5 +1,7 @@
 use crate::IMExIterator;
 
+/// An IMExIterator that keeps track of how many times it has iterated with some result.
+/// Used by QuantifiedIMExVal to keep track of inner IMExVal iterations.
 #[derive(PartialEq, Debug, Clone)]
 pub struct IMExIterCounter<X: IMExIterator> {
     imex_iter: X,
@@ -22,6 +24,7 @@ impl<X: IMExIterator> IMExIterator for IMExIterCounter<X> {
 }
 
 impl<X: IMExIterator> IMExIterCounter<X> {
+    /// Construct a new IMExIterCounter from any IMExIterator
     pub fn new(imex_iter: X) -> IMExIterCounter<X> {
         IMExIterCounter {
             imex_iter,
@@ -29,13 +32,20 @@ impl<X: IMExIterator> IMExIterCounter<X> {
         }
     }
 
+    /// Get the current number of times that this IMExIterCounter was iterated with some result.
     pub fn count(&self) -> u32 {
         self.counter
     }
 }
 
 use nom::IResult;
+
+/// Trait for implementing parser-combinator-style parse functions
 pub trait ParserCombinator {
+    /// Defines how an object is parsed from a string.
+    ///
+    /// Returns a nom::IResult containing the Self that was parsed and the remainder of the input
+    /// string that wasn't parsed.
     fn parse(input: &str) -> IResult<&str, Self>
     where
         Self: std::marker::Sized;
