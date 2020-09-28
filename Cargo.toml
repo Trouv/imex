@@ -1,6 +1,6 @@
 [package]
 name = "imex"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Trevor Lovell <trevorlovelldesign@gmail.com>"]
 description = """
 A library for merging multiple iterators into one iterator, with the optional
