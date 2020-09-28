@@ -12,9 +12,9 @@ fn main() {
 Merge multiple files into one line-by-line, with the optional use of an IMEx,
 or Iterator-Merging-Expression, for controlling the merge.
 
-Documentation for writing an imex can be found at https://docs.rs/crate/imex
+Documentation for writing an IMEx can be found at https://docs.rs/crate/imex
 
-If stdin has data, the 0th index in the imex will refer to stdin.",
+If stdin has data, the 0th index in the IMEx will refer to stdin.",
         )
         .author(crate_authors!())
         .version(crate_version!())
@@ -28,7 +28,7 @@ If stdin has data, the 0th index in the imex will refer to stdin.",
         .arg(
             Arg::with_name("imex")
                 .help(
-                    "Define imex to control the merge.
+                    "Define IMEx to control the merge.
 Defaults to (012...x)* where x is the
 number of files provided minus one.",
                 )
@@ -40,14 +40,23 @@ number of files provided minus one.",
 
     let mut vec_lines: Vec<Lines<BufReader<File>>> = matches
         .values_of("files")
-        .unwrap()
-        .map(|path| BufReader::new(File::open(Path::new(path)).unwrap()).lines())
+        .expect("Required argument is missing.")
+        .map(|path| {
+            BufReader::new(match File::open(Path::new(path)) {
+                Ok(file) => file,
+                Err(_) => panic!("No such file or directory: {}", path),
+            })
+            .lines()
+        })
         .collect();
 
     let first = vec_lines.remove(0);
 
     let imex = match matches.value_of("imex") {
-        Some(imex) => first.imex_merge_all(&mut vec_lines, imex).unwrap(),
+        Some(imex) => match first.imex_merge_all(&mut vec_lines, imex) {
+            Ok(res) => res,
+            Err(e) => panic!("Invalid IMEx\n{}", e),
+        },
         None => first.rot_merge_all(&mut vec_lines),
     };
 

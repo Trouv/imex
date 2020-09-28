@@ -5,6 +5,8 @@ use crate::{
 use nom::{
     character::complete::char,
     combinator::all_consuming,
+    combinator::complete,
+    error::{convert_error, VerboseError},
     multi::{many0, many_till},
     IResult,
 };
@@ -45,8 +47,8 @@ impl IMEx {
     ///
     /// # Error
     /// Results in an error if the input string is not a valid IMEx.
-    fn parse_complete(input: &str) -> IResult<&str, IMEx> {
-        let (input, imex) = all_consuming(many0(QuantifiedIMExVal::parse))(input)?;
+    fn parse_complete(input: &str) -> IResult<&str, IMEx, VerboseError<&str>> {
+        let (input, imex) = complete(all_consuming(many0(QuantifiedIMExVal::parse)))(input)?;
         Ok((input, IMEx::new(imex.into_iter())))
     }
 }
@@ -68,7 +70,17 @@ impl TryFrom<&str> for IMEx {
     fn try_from(imex_str: &str) -> Result<Self> {
         match IMEx::parse_complete(imex_str) {
             Ok((_, imex)) => Ok(imex),
-            Err(e) => Err(Error::new(InvalidInput, format!("{}", e))),
+            Err(e) => Err(Error::new(
+                InvalidInput,
+                convert_error(
+                    imex_str,
+                    match e {
+                        nom::Err::Error(verbose) => verbose,
+                        nom::Err::Failure(verbose) => verbose,
+                        _ => panic!("Expected input to be complete"),
+                    },
+                ),
+            )),
         }
     }
 }
@@ -94,7 +106,7 @@ impl IMExIterator for IMEx {
 }
 
 impl ParserCombinator for IMEx {
-    fn parse(input: &str) -> IResult<&str, IMEx> {
+    fn parse(input: &str) -> IResult<&str, IMEx, VerboseError<&str>> {
         let (input, imex) = many_till(QuantifiedIMExVal::parse, char(')'))(input)?;
         Ok((input, IMEx::new(imex.0.into_iter())))
     }

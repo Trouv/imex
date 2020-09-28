@@ -2,7 +2,7 @@ use crate::{
     expression::{IMExIterCounter, IMExVal, ParserCombinator, Quantifier},
     IMExIterator,
 };
-use nom::IResult;
+use nom::{error::VerboseError, IResult};
 
 /// An [`IMExVal`](./enum.IMExVal.html) that has been quantified, for use in a parsed
 /// [`IMEx`](./struct.IMEx.html).
@@ -73,7 +73,7 @@ impl IMExIterator for QuantifiedIMExVal {
 }
 
 impl ParserCombinator for QuantifiedIMExVal {
-    fn parse(input: &str) -> IResult<&str, QuantifiedIMExVal> {
+    fn parse(input: &str) -> IResult<&str, QuantifiedIMExVal, VerboseError<&str>> {
         let (input, val) = IMExVal::parse(input)?;
         let (input, quantifier) = Quantifier::parse(input)?;
         Ok((input, QuantifiedIMExVal::new(val, quantifier)))

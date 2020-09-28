@@ -5,6 +5,7 @@ use crate::{
 use nom::{
     branch::alt,
     character::complete::{char, one_of},
+    error::VerboseError,
     IResult,
 };
 use std::iter::{once, Once};
@@ -48,7 +49,7 @@ impl IMExIterator for IMExVal {
     }
 }
 
-fn parse_single_imex_val(input: &str) -> IResult<&str, IMExVal> {
+fn parse_single_imex_val(input: &str) -> IResult<&str, IMExVal, VerboseError<&str>> {
     let (input, x) = one_of("0123456789")(input)?;
     Ok((
         input,
@@ -58,14 +59,14 @@ fn parse_single_imex_val(input: &str) -> IResult<&str, IMExVal> {
     ))
 }
 
-fn parse_group_imex_val(input: &str) -> IResult<&str, IMExVal> {
+fn parse_group_imex_val(input: &str) -> IResult<&str, IMExVal, VerboseError<&str>> {
     let (input, _) = char('(')(input)?;
     let (input, imex) = IMEx::parse(input)?;
     Ok((input, IMExVal::Group(imex)))
 }
 
 impl ParserCombinator for IMExVal {
-    fn parse(input: &str) -> IResult<&str, IMExVal> {
+    fn parse(input: &str) -> IResult<&str, IMExVal, VerboseError<&str>> {
         alt((parse_single_imex_val, parse_group_imex_val))(input)
     }
 }

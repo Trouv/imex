@@ -38,7 +38,7 @@ impl<X: IMExIterator> IMExIterCounter<X> {
     }
 }
 
-use nom::IResult;
+use nom::{error::VerboseError, IResult};
 
 /// Trait for implementing parser-combinator-style parse functions
 pub trait ParserCombinator {
@@ -46,7 +46,7 @@ pub trait ParserCombinator {
     ///
     /// Returns a nom::IResult containing the Self that was parsed and the remainder of the input
     /// string that wasn't parsed.
-    fn parse(input: &str) -> IResult<&str, Self>
+    fn parse(input: &str) -> IResult<&str, Self, VerboseError<&str>>
     where
         Self: std::marker::Sized;
 }

@@ -3,6 +3,7 @@ use nom::{
     branch::alt,
     character::complete::{char, digit1},
     combinator::opt,
+    error::VerboseError,
     sequence::delimited,
     IResult,
 };
@@ -30,7 +31,7 @@ impl Iterator for Quantifier {
     }
 }
 
-fn parse_finite_quantifier(input: &str) -> IResult<&str, Quantifier> {
+fn parse_finite_quantifier(input: &str) -> IResult<&str, Quantifier, VerboseError<&str>> {
     match opt(delimited(char('{'), digit1, char('}')))(input)? {
         (input, Some(x)) => Ok((
             input,
@@ -40,13 +41,13 @@ fn parse_finite_quantifier(input: &str) -> IResult<&str, Quantifier> {
     }
 }
 
-fn parse_infinite_quantifier(input: &str) -> IResult<&str, Quantifier> {
+fn parse_infinite_quantifier(input: &str) -> IResult<&str, Quantifier, VerboseError<&str>> {
     let (input, _) = char('*')(input)?;
     Ok((input, Quantifier::Infinite))
 }
 
 impl ParserCombinator for Quantifier {
-    fn parse(input: &str) -> IResult<&str, Quantifier> {
+    fn parse(input: &str) -> IResult<&str, Quantifier, VerboseError<&str>> {
         alt((parse_infinite_quantifier, parse_finite_quantifier))(input)
     }
 }
