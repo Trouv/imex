@@ -75,8 +75,7 @@ impl TryFrom<&str> for IMEx {
                 convert_error(
                     imex_str,
                     match e {
-                        nom::Err::Error(verbose) => verbose,
-                        nom::Err::Failure(verbose) => verbose,
+                        nom::Err::Error(verbose) | nom::Err::Failure(verbose) => verbose,
                         _ => panic!("Expected input to be complete"),
                     },
                 ),

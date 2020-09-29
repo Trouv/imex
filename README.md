@@ -41,6 +41,7 @@ the `-i` option.
 The digits of the IMEx will refer to one of the files you provide in the order
 you provide them, 0-indexed.
 The filename `-` is reserved for stdin.
+
 So, the following command will merge the output of the `ls` command with two
 other files, taking 10 lines from stdin and then one from each of the files
 until they're all exhausted, then output it to a file called `out.txt`:
