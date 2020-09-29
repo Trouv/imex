@@ -1,6 +1,6 @@
 use imex::IMExMerges;
 use std::fs::File;
-use std::io::{BufRead, BufReader, Lines};
+use std::io::{stdin, BufRead, BufReader, Lines};
 use std::path::Path;
 
 use clap::{crate_authors, crate_version, App, Arg};
@@ -10,23 +10,25 @@ fn main() {
         .about(
             "
 Merge multiple files into one line-by-line, with the optional use of an IMEx,
-or Iterator-Merging-Expression, for controlling the merge.
+or Iterator-Merging-Expression, for controlling the merge. 
 
 Documentation for writing an IMEx can be found at https://docs.rs/crate/imex
+In this case, the digits of the IMEx will refer to one of the files you provide
+in the order you provide them, 0-indexed.
 
-If stdin has data, the 0th index in the IMEx will refer to stdin.",
+The filename '-' is reserved for stdin.",
         )
         .author(crate_authors!())
         .version(crate_version!())
         .arg(
-            Arg::with_name("files")
+            Arg::with_name("FILES")
                 .help("Paths of files to be merged. Maximum of 10.")
                 .required(true)
                 .max_values(10)
                 .index(1),
         )
         .arg(
-            Arg::with_name("imex")
+            Arg::with_name("IMEX")
                 .help(
                     "Define IMEx to control the merge.
 Defaults to (012...x)* where x is the
@@ -38,21 +40,25 @@ number of files provided minus one.",
         )
         .get_matches();
 
-    let mut vec_lines: Vec<Lines<BufReader<File>>> = matches
-        .values_of("files")
+    let mut vec_lines: Vec<Lines<Box<dyn BufRead>>> = matches
+        .values_of("FILES")
         .expect("Required argument is missing.")
         .map(|path| {
-            BufReader::new(match File::open(Path::new(path)) {
-                Ok(file) => file,
-                Err(_) => panic!("No such file or directory: {}", path),
-            })
-            .lines()
+            let bufread: Box<dyn BufRead> = if path == "-" {
+                Box::new(BufReader::new(stdin()))
+            } else {
+                Box::new(BufReader::new(match File::open(Path::new(path)) {
+                    Ok(file) => file,
+                    Err(_) => panic!("No such file or directory: {}", path),
+                }))
+            };
+            bufread.lines()
         })
         .collect();
 
     let first = vec_lines.remove(0);
 
-    let imex = match matches.value_of("imex") {
+    let imex = match matches.value_of("IMEX") {
         Some(imex) => match first.imex_merge_all(&mut vec_lines, imex) {
             Ok(res) => res,
             Err(e) => panic!("Invalid IMEx\n{}", e),
