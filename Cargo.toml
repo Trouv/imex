@@ -3,12 +3,13 @@ name = "imex"
 version = "0.2.1"
 authors = ["Trevor Lovell <trevorlovelldesign@gmail.com>"]
 description = """
-A library for merging multiple iterators into one iterator, with the optional
-use of an IMEx, or Iterator-Merging-Expression, for controlling the merge.
+A library/CLI for merging multiple iterators/files into one, with the
+optional use of an IMEx, or Iterator-Merging-Expression, for controlling the
+merge.
 """
 repository = "https://github.com/Trouv/imex"
 readme = "README.md"
-keywords = ["iterator", "merge", "regex", "pattern"]
+keywords = ["iterator", "merge", "regex", "pattern", "cli"]
 license = "MIT OR Apache-2.0"
 edition = "2018"
 
